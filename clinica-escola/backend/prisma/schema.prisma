@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  ADMIN
+  RECEPCAO
+  PROFISSIONAL
+  ESTUDANTE
+}
+
+enum StatusAtendimento {
+  REALIZADO
+  CANCELADO
+  FALTOU
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  perfil    Perfil
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  atendimentosResponsavel Atendimento[] @relation("AtendimentoResponsavel")
+  atendimentosCriados     Atendimento[] @relation("AtendimentoCriadoPor")
+  auditorias              Auditoria[]
+}
+
+model Paciente {
+  id                 String   @id @default(uuid())
+  nome               String
+  dataNascimento     DateTime
+  cpf                String?  @unique
+  telefone           String?
+  email              String?
+  endereco           String?
+  contatoResponsavel String?
+  observacoes        String?
+  ativo              Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  atendimentos Atendimento[]
+}
+
+model Especialidade {
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+  ativa     Boolean @default(true)
+
+  // Nome normalizado (sem acento, minúsculo) preenchido SOMENTE enquanto a
+  // especialidade está ativa; NULL quando inativa. Como o Postgres permite
+  // vários NULL em índice unique, isso garante "nome único entre ativas".
+  nomeAtivoChave String? @unique
+
+  atendimentos Atendimento[]
+}
+
+model Atendimento {
+  id              String            @id @default(uuid())
+  pacienteId      String
+  especialidadeId String
+  responsavelId   String
+  dataHora        DateTime
+  descricao       String?
+  conduta         String?
+  status          StatusAtendimento @default(REALIZADO)
+  finalizado      Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  createdBy       String
+
+  paciente      Paciente      @relation(fields: [pacienteId], references: [id])
+  especialidade Especialidade @relation(fields: [especialidadeId], references: [id])
+  responsavel   Usuario       @relation("AtendimentoResponsavel", fields: [responsavelId], references: [id])
+  criadoPor     Usuario       @relation("AtendimentoCriadoPor", fields: [createdBy], references: [id])
+
+  @@index([pacienteId, dataHora])
+  @@index([responsavelId, dataHora])
+}
+
+model Auditoria {
+  id          String   @id @default(uuid())
+  usuarioId   String
+  entidade    String
+  entidadeId  String
+  acao        String
+  dadosAntes  Json?
+  dadosDepois Json?
+  createdAt   DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([entidade, entidadeId])
+  @@index([createdAt])
+}
