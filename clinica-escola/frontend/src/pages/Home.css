@@ -1,0 +1,252 @@
+.home {
+  --azul: #1b4a9c;
+  --azul-escuro: #0f2f6b;
+  --vermelho: #e3262f;
+  --amarelo: #ffd000;
+  --texto: #1c2638;
+  --cinza: #667489;
+  --borda: #d5dcea;
+
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  color: var(--texto);
+  background: #f4f6fb;
+}
+
+/* Barra superior */
+.home__topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem clamp(1rem, 4vw, 3rem);
+  background: #fff;
+  border-top: 5px solid var(--vermelho);
+  border-bottom: 1px solid var(--borda);
+  box-shadow: 0 2px 10px rgba(15, 47, 107, 0.06);
+}
+
+.home__marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home__logo {
+  display: block;
+  height: 64px;
+  width: auto;
+}
+
+.home__marca-nome {
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--amarelo);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--azul-escuro);
+}
+
+.home__marca-nome small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cinza);
+}
+
+.home__usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.home__avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--azul);
+  border: 2px solid var(--amarelo);
+  border-radius: 50%;
+}
+
+.home__dados {
+  display: grid;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.home__dados strong {
+  font-size: 0.92rem;
+}
+
+.home__dados span {
+  font-size: 0.75rem;
+  color: var(--cinza);
+}
+
+.home__sair {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--azul);
+  background: #fff;
+  border: 1.5px solid var(--borda);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.home__sair:hover {
+  color: var(--vermelho);
+  border-color: var(--vermelho);
+  background: #fff6f6;
+}
+
+/* Conteúdo */
+.home__conteudo {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+}
+
+.home__boasvindas {
+  position: relative;
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  background: linear-gradient(160deg, var(--azul) 0%, var(--azul-escuro) 100%);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.home__boasvindas::after {
+  content: '';
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -80px;
+  bottom: -110px;
+  border-radius: 50%;
+  border: 34px solid rgba(255, 208, 0, 0.16);
+}
+
+.home__boasvindas h1 {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 0.3rem;
+  font-size: 1.7rem;
+}
+
+.home__boasvindas h1 span {
+  color: var(--amarelo);
+}
+
+.home__boasvindas p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.home__titulo-secao {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cinza);
+}
+
+.home__grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+}
+
+.home__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  color: inherit;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-bottom: 4px solid var(--azul);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(15, 47, 107, 0.06);
+  transition: transform 0.15s, box-shadow 0.15s, border-bottom-color 0.15s;
+}
+
+.home__card:hover,
+.home__card:focus-visible {
+  transform: translateY(-4px);
+  border-bottom-color: var(--amarelo);
+  box-shadow: 0 12px 28px rgba(15, 47, 107, 0.16);
+  outline: none;
+}
+
+.home__card-icone {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 0.3rem;
+  color: var(--azul);
+  background: #e9effa;
+  border-radius: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.home__card:hover .home__card-icone {
+  color: #fff;
+  background: var(--azul);
+}
+
+.home__card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--azul-escuro);
+}
+
+.home__card p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--cinza);
+}
+
+.home__card-acao {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--vermelho);
+}
+
+@media (max-width: 640px) {
+  .home__marca-nome,
+  .home__dados {
+    display: none;
+  }
+
+  .home__logo {
+    height: 52px;
+  }
+
+  .home__boasvindas {
+    padding: 1.4rem 1.25rem;
+  }
+}

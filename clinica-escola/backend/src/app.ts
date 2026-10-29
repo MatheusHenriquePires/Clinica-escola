@@ -1,4 +1,5 @@
 import Fastify from 'fastify'
+import { alunosRoutes } from './modules/alunos/routes.js'
 import { atendimentosRoutes } from './modules/atendimentos/routes.js'
 import { auditoriaRoutes } from './modules/auditoria/routes.js'
 import { authRoutes } from './modules/auth/routes.js'
@@ -41,6 +42,7 @@ export async function buildApp() {
   app.get('/health', async () => ({ status: 'ok' }))
 
   await app.register(authRoutes, { prefix: '/auth' })
+  await app.register(alunosRoutes, { prefix: '/alunos' })
   await app.register(pacientesRoutes, { prefix: '/pacientes' })
   await app.register(especialidadesRoutes, { prefix: '/especialidades' })
   await app.register(atendimentosRoutes, { prefix: '/atendimentos' })

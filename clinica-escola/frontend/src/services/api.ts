@@ -9,8 +9,17 @@ export const tokenStore = {
   clear: () => sessionStorage.removeItem(TOKEN_KEY),
 }
 
+export interface DetalheErro {
+  campo: string
+  mensagem: string
+}
+
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+    public detalhes: DetalheErro[] = [],
+  ) {
     super(message)
   }
 }
@@ -20,7 +29,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      // Só declara JSON quando há corpo (o Fastify rejeita JSON vazio com 400).
+      ...(init.body != null && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),
       ...init.headers,
     },
@@ -31,7 +41,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       tokenStore.clear() // sessão expirada
       window.dispatchEvent(new Event('clinica:sessao-expirada'))
     }
-    throw new ApiError(res.status, body?.message ?? 'Erro inesperado.')
+    throw new ApiError(res.status, body?.message ?? 'Erro inesperado.', body?.detalhes ?? [])
   }
   return body as T
 }
