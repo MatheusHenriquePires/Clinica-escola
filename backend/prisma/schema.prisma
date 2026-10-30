@@ -24,6 +24,10 @@ model Usuario {
   id        String   @id @default(uuid())
   nome      String
   email     String   @unique
+  // Identificador institucional do aluno (perfil ESTUDANTE); NULL nos demais perfis.
+  matricula String?  @unique
+  // Curso que o aluno faz (perfil ESTUDANTE); NULL nos demais perfis.
+  curso String?
   senhaHash String
   perfil    Perfil
   ativo     Boolean  @default(true)
