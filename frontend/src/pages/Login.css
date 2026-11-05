@@ -10,7 +10,12 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Roboto,
+    sans-serif;
   color: var(--texto);
   background: #fff;
 }
@@ -70,7 +75,10 @@
   border-radius: 10px;
   background: #f6f8fc;
   color: var(--cinza);
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
 }
 
 .login__entrada:focus-within {
@@ -116,7 +124,9 @@
   border-radius: 10px;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(27, 74, 156, 0.3);
-  transition: background 0.15s, transform 0.05s;
+  transition:
+    background 0.15s,
+    transform 0.05s;
 }
 
 .login__botao:hover {

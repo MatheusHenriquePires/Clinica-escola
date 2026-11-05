@@ -41,7 +41,10 @@
   font-weight: 700;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .alunos__primario {
@@ -213,7 +216,10 @@
   border: 1.5px solid var(--borda);
   border-radius: 10px;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
 }
 
 .alunos__campo input:focus,

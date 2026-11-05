@@ -244,85 +244,90 @@ export function Alunos() {
 
       {painel && (
         <div className="alunos__fundo">
-        <form
-          className="alunos__form alunos__modal"
-          onSubmit={salvar}
-          noValidate
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="alunos-modal-titulo"
-        >
-          <div className="alunos__modal-topo">
-            <h2 id="alunos-modal-titulo">{titulo}</h2>
-            <button type="button" className="alunos__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
-              ×
-            </button>
-          </div>
-          <div className="alunos__linha">
-            {painel.tipo !== 'senha' && (
-              <>
-                {campo('nome', 'Nome completo', { type: 'text', autoComplete: 'off', maxLength: 120, autoFocus: true })}
-                {campo('email', 'Email de acesso', { type: 'email', autoComplete: 'off', maxLength: 160 })}
-                {campo('matricula', 'Matrícula', {
-                  type: 'text',
-                  autoComplete: 'off',
-                  maxLength: 20,
-                  style: { textTransform: 'uppercase' },
+          <form
+            className="alunos__form alunos__modal"
+            onSubmit={salvar}
+            noValidate
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="alunos-modal-titulo"
+          >
+            <div className="alunos__modal-topo">
+              <h2 id="alunos-modal-titulo">{titulo}</h2>
+              <button type="button" className="alunos__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
+                ×
+              </button>
+            </div>
+            <div className="alunos__linha">
+              {painel.tipo !== 'senha' && (
+                <>
+                  {campo('nome', 'Nome completo', {
+                    type: 'text',
+                    autoComplete: 'off',
+                    maxLength: 120,
+                    autoFocus: true,
+                  })}
+                  {campo('email', 'Email de acesso', { type: 'email', autoComplete: 'off', maxLength: 160 })}
+                  {campo('matricula', 'Matrícula', {
+                    type: 'text',
+                    autoComplete: 'off',
+                    maxLength: 20,
+                    style: { textTransform: 'uppercase' },
+                  })}
+                  <label className="alunos__campo">
+                    Curso
+                    <select
+                      value={form.curso}
+                      onChange={(e) => setForm({ ...form, curso: e.target.value })}
+                      aria-invalid={!!errosCampo.curso}
+                      className={errosCampo.curso ? 'alunos__invalido' : undefined}
+                    >
+                      <option value="">Selecione o curso</option>
+                      {cursos.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    {errosCampo.curso && <span className="alunos__erro-campo">{errosCampo.curso}</span>}
+                  </label>
+                </>
+              )}
+              {painel.tipo !== 'editar' &&
+                campo('senha', painel.tipo === 'novo' ? 'Senha inicial' : 'Nova senha', {
+                  type: verSenha ? 'text' : 'password',
+                  autoComplete: 'new-password',
+                  maxLength: 200,
+                  autoFocus: painel.tipo === 'senha',
                 })}
-                <label className="alunos__campo">
-                  Curso
-                  <select
-                    value={form.curso}
-                    onChange={(e) => setForm({ ...form, curso: e.target.value })}
-                    aria-invalid={!!errosCampo.curso}
-                    className={errosCampo.curso ? 'alunos__invalido' : undefined}
-                  >
-                    <option value="">Selecione o curso</option>
-                    {cursos.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  {errosCampo.curso && <span className="alunos__erro-campo">{errosCampo.curso}</span>}
-                </label>
-              </>
+            </div>
+            {painel.tipo !== 'editar' && (
+              <label className="alunos__ver-senha">
+                <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} />
+                Mostrar senha
+              </label>
             )}
-            {painel.tipo !== 'editar' &&
-              campo('senha', painel.tipo === 'novo' ? 'Senha inicial' : 'Nova senha', {
-                type: verSenha ? 'text' : 'password',
-                autoComplete: 'new-password',
-                maxLength: 200,
-                autoFocus: painel.tipo === 'senha',
-              })}
-          </div>
-          {painel.tipo !== 'editar' && (
-            <label className="alunos__ver-senha">
-              <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} />
-              Mostrar senha
-            </label>
-          )}
-          <p className="alunos__dica">
-            {painel.tipo === 'senha'
-              ? 'Mínimo de 8 caracteres, com letra e número. Entregue a nova senha ao aluno; ela não pode ser consultada depois.'
-              : painel.tipo === 'novo'
-                ? 'O aluno entra com este email e senha (mínimo de 8 caracteres, com letra e número). O perfil é Estudante.'
-                : 'Alterar o email muda o login do aluno. A alteração fica registrada na auditoria.'}
-          </p>
-          {erroForm && (
-            <p role="alert" className="alunos__erro">
-              {erroForm}
+            <p className="alunos__dica">
+              {painel.tipo === 'senha'
+                ? 'Mínimo de 8 caracteres, com letra e número. Entregue a nova senha ao aluno; ela não pode ser consultada depois.'
+                : painel.tipo === 'novo'
+                  ? 'O aluno entra com este email e senha (mínimo de 8 caracteres, com letra e número). O perfil é Estudante.'
+                  : 'Alterar o email muda o login do aluno. A alteração fica registrada na auditoria.'}
             </p>
-          )}
-          <div className="alunos__acoes">
-            <button type="button" className="alunos__secundario" onClick={() => setPainel(null)}>
-              Cancelar
-            </button>
-            <button type="submit" className="alunos__primario" disabled={salvando}>
-              {salvando ? 'Salvando…' : painel.tipo === 'senha' ? 'Redefinir senha' : 'Salvar'}
-            </button>
-          </div>
-        </form>
+            {erroForm && (
+              <p role="alert" className="alunos__erro">
+                {erroForm}
+              </p>
+            )}
+            <div className="alunos__acoes">
+              <button type="button" className="alunos__secundario" onClick={() => setPainel(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="alunos__primario" disabled={salvando}>
+                {salvando ? 'Salvando…' : painel.tipo === 'senha' ? 'Redefinir senha' : 'Salvar'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

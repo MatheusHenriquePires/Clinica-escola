@@ -63,3 +63,14 @@ Rotas ainda não implementadas respondem `501` e têm um `TODO` com o responsáv
 | atendimentos | Daniel |
 | frontend | Andrey / Pedro |
 >>>>>>> 69d41f7 (Primeiro commit)
+
+### Rodar front e back juntos
+
+Na raiz do projeto (com o banco no ar e `backend/.env` / `frontend/.env` criados):
+
+```bash
+npm run install:all   # uma vez
+npm run db            # sobe o Postgres
+# uma vez: cd backend && npx prisma migrate dev --name init && npm run prisma:seed
+npm run dev           # back em :3333 e front em :5173, no mesmo terminal
+```

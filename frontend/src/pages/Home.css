@@ -8,7 +8,12 @@
   --borda: #d5dcea;
 
   min-height: 100vh;
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Roboto,
+    sans-serif;
   color: var(--texto);
   background: #f4f6fb;
 }
@@ -106,7 +111,10 @@
   border: 1.5px solid var(--borda);
   border-radius: 8px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .home__sair:hover {
@@ -188,7 +196,10 @@
   border-bottom: 4px solid var(--azul);
   border-radius: 14px;
   box-shadow: 0 4px 14px rgba(15, 47, 107, 0.06);
-  transition: transform 0.15s, box-shadow 0.15s, border-bottom-color 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-bottom-color 0.15s;
 }
 
 .home__card:hover,
@@ -208,7 +219,9 @@
   color: var(--azul);
   background: #e9effa;
   border-radius: 12px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .home__card:hover .home__card-icone {

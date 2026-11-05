@@ -22,6 +22,7 @@
     "@fastify/rate-limit": "^10.1.1",
     "@prisma/client": "^6.0.0",
     "argon2": "^0.41.1",
+    "clinica-escola": "file:..",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0",
     "fastify-plugin": "^5.0.1",

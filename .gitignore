@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 .idea/
-=======
 node_modules/
 dist/
 .env
 *.log
 coverage/
->>>>>>> 69d41f7 (Primeiro commit)

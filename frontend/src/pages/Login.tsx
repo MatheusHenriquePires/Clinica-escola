@@ -1,7 +1,8 @@
 // Donos: Andrey / Pedro (front)
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { ApiError } from '../services/api'
 import logo from '../assets/uninassau-logo.png'
 import './Login.css'
 
@@ -47,15 +48,24 @@ const IconePulso = () => (
   </svg>
 )
 
+function mensagemDeErro(err: unknown) {
+  if (!(err instanceof ApiError)) return 'Erro inesperado. Tente novamente.'
+  if (err.status === 429) return 'Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.'
+  if (err.status === 401) return 'Email ou senha inválidos.'
+  if (err.status === 400) return 'Informe um email válido e a senha.'
+  return err.message
+}
+
 export function Login() {
-  const { usuario, login } = useAuth()
+  const { usuario, login, sessaoExpirada } = useAuth()
   const navigate = useNavigate()
+  const destino = (useLocation().state as { de?: string } | null)?.de ?? '/'
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
 
-  if (usuario) return <Navigate to="/" replace />
+  if (usuario) return <Navigate to={destino} replace />
 
   const enviar = async (e: FormEvent) => {
     e.preventDefault()
@@ -63,9 +73,9 @@ export function Login() {
     setEnviando(true)
     try {
       await login(email, senha)
-      navigate('/')
+      navigate(destino, { replace: true })
     } catch (err) {
-      setErro(err instanceof Error ? err.message : 'Erro inesperado.')
+      setErro(mensagemDeErro(err))
     } finally {
       setEnviando(false)
     }
@@ -111,6 +121,12 @@ export function Login() {
               />
             </span>
           </label>
+
+          {sessaoExpirada && !erro && (
+            <p role="status" className="login__erro">
+              Sua sessão expirou. Entre novamente para continuar.
+            </p>
+          )}
 
           {erro && (
             <p role="alert" className="login__erro">

@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
+import { PERMISSOES } from '../routes/permissoes'
 import './Home.css'
 
 const icone = {
@@ -46,25 +47,28 @@ const modulos: { to: string; titulo: string; descricao: string; Icone: () => JSX
     titulo: 'Pacientes',
     descricao: 'Cadastro, consulta e inativação de pacientes da clínica.',
     Icone: IconePacientes,
+    perfis: PERMISSOES.pacientes.acessar,
   },
   {
     to: '/especialidades',
     titulo: 'Especialidades',
     descricao: 'Áreas de atuação disponíveis para atendimento.',
     Icone: IconeEspecialidades,
+    perfis: PERMISSOES.especialidades.acessar,
   },
   {
     to: '/atendimentos',
     titulo: 'Atendimentos',
     descricao: 'Agendamento e acompanhamento dos atendimentos.',
     Icone: IconeAtendimentos,
+    perfis: PERMISSOES.atendimentos.acessar,
   },
   {
     to: '/alunos',
     titulo: 'Alunos',
     descricao: 'Cadastro e acesso dos estudantes que atuam na clínica.',
     Icone: IconeAlunos,
-    perfis: ['ADMIN'],
+    perfis: PERMISSOES.alunos.acessar,
   },
 ]
 
