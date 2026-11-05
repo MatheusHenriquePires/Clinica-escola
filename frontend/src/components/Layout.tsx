@@ -1,9 +1,9 @@
 // Donos: Andrey / Pedro (front)
-import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type ReactNode } from 'react'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
-import logo from '../assets/uninassau-logo.png'
+import { MenuLateral } from './MenuLateral'
 import '../pages/Home.css'
+import './MenuLateral.css'
 
 const perfis: Record<Perfil, string> = {
   ADMIN: 'Administrador',
@@ -12,53 +12,56 @@ const perfis: Record<Perfil, string> = {
   ESTUDANTE: 'Estudante',
 }
 
-const IconeSair = () => (
-  <svg
-    width={16}
-    height={16}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden
-  >
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-  </svg>
-)
+const CHAVE_MENU = 'clinica.menu'
+const telaLarga = () => window.matchMedia('(min-width: 861px)').matches
 
-/** Barra superior + área de conteúdo compartilhadas pelas telas autenticadas. */
+/** Estado inicial: última escolha do usuário; sem escolha, expandido só em tela larga. */
+const menuInicial = () => {
+  if (!telaLarga()) return false
+  try {
+    return localStorage.getItem(CHAVE_MENU) !== 'fechado'
+  } catch {
+    return true
+  }
+}
+
+/** Menu lateral + barra superior + área de conteúdo compartilhadas pelas telas autenticadas. */
 export function Layout({ children }: { children: ReactNode }) {
-  const { usuario, logout } = useAuth()
+  const { usuario } = useAuth()
   const nome = usuario?.nome ?? ''
+  const [menuAberto, setMenuAberto] = useState(menuInicial)
+
+  const definirMenu = (aberto: boolean) => {
+    setMenuAberto(aberto)
+    // No celular o menu expandido é temporário: não guarda a escolha.
+    if (!telaLarga()) return
+    try {
+      localStorage.setItem(CHAVE_MENU, aberto ? 'aberto' : 'fechado')
+    } catch {
+      /* ignora */
+    }
+  }
 
   return (
-    <div className="home">
-      <header className="home__topo">
-        <Link to="/" className="home__marca" aria-label="Voltar ao menu principal">
-          <img className="home__logo" src={logo} alt="Uninassau" />
-          <span className="home__marca-nome">
-            Clínica Escola
-            <small>Portal de atendimento</small>
-          </span>
-        </Link>
+    <div className={menuAberto ? 'home home--menu' : 'home'}>
+      <MenuLateral aberto={menuAberto} onAlternar={() => definirMenu(!menuAberto)} />
+      <div className="menu__fundo" onClick={() => definirMenu(false)} aria-hidden />
 
-        <div className="home__usuario">
-          <div className="home__dados">
-            <strong>{nome}</strong>
-            <span>{usuario ? perfis[usuario.perfil] : ''}</span>
+      <div className="home__principal">
+        <header className="home__topo">
+          <div className="home__usuario">
+            <div className="home__dados">
+              <strong>{nome}</strong>
+              <span>{usuario ? perfis[usuario.perfil] : ''}</span>
+            </div>
+            <span className="home__avatar" aria-hidden="true">
+              {nome.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <span className="home__avatar" aria-hidden="true">
-            {nome.charAt(0).toUpperCase()}
-          </span>
-          <button className="home__sair" onClick={logout}>
-            <IconeSair /> Sair
-          </button>
-        </div>
-      </header>
+        </header>
 
-      <main className="home__conteudo">{children}</main>
+        <main className="home__conteudo">{children}</main>
+      </div>
     </div>
   )
 }

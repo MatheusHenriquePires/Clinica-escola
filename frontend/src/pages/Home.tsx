@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
+import { ProximasConsultas } from '../components/ProximasConsultas'
 import { PERMISSOES } from '../routes/permissoes'
 import './Home.css'
 
@@ -34,6 +35,18 @@ const IconeAtendimentos = () => (
     <path d="M16 3v4M8 3v4M3 11h18M12 14v4M10 16h4" />
   </svg>
 )
+const IconeProfissionais = () => (
+  <svg {...icone}>
+    <circle cx="12" cy="7.5" r="3.5" />
+    <path d="M5 21a7 7 0 0 1 14 0M12 14v4M10 16h4" />
+  </svg>
+)
+const IconeHorarios = () => (
+  <svg {...icone}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+)
 const IconeAlunos = () => (
   <svg {...icone}>
     <path d="m2 9 10-5 10 5-10 5z" />
@@ -57,11 +70,25 @@ const modulos: { to: string; titulo: string; descricao: string; Icone: () => JSX
     perfis: PERMISSOES.especialidades.acessar,
   },
   {
+    to: '/profissionais',
+    titulo: 'Profissionais',
+    descricao: 'Cadastro e acesso dos profissionais da clínica.',
+    Icone: IconeProfissionais,
+    perfis: PERMISSOES.profissionais.acessar,
+  },
+  {
     to: '/atendimentos',
     titulo: 'Atendimentos',
     descricao: 'Agendamento e acompanhamento dos atendimentos.',
     Icone: IconeAtendimentos,
     perfis: PERMISSOES.atendimentos.acessar,
+  },
+  {
+    to: '/horarios',
+    titulo: 'Horários',
+    descricao: 'Agenda da semana e horários de atendimento.',
+    Icone: IconeHorarios,
+    perfis: PERMISSOES.horarios.acessar,
   },
   {
     to: '/alunos',
@@ -85,6 +112,10 @@ export function Home() {
         </h1>
         <p>O que você deseja fazer hoje?</p>
       </section>
+
+      {(usuario?.perfil === 'PROFISSIONAL' || usuario?.perfil === 'ESTUDANTE') && (
+        <ProximasConsultas mostrarHorarios={usuario.perfil === 'PROFISSIONAL'} />
+      )}
 
       <h2 className="home__titulo-secao">Menu principal</h2>
       <nav className="home__grade" aria-label="Menu principal">

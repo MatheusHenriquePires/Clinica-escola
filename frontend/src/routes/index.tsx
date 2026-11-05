@@ -7,6 +7,8 @@ import { Especialidades } from '../pages/Especialidades'
 import { Home } from '../pages/Home'
 import { Login } from '../pages/Login'
 import { Pacientes } from '../pages/Pacientes'
+import { Profissionais } from '../pages/Profissionais'
+import { Horarios } from '../pages/Horarios'
 import { PERMISSOES } from './permissoes'
 
 export function AppRoutes() {
@@ -42,6 +44,22 @@ export function AppRoutes() {
         element={
           <ProtectedRoute perfis={PERMISSOES.especialidades.acessar}>
             <Especialidades />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profissionais"
+        element={
+          <ProtectedRoute perfis={PERMISSOES.profissionais.acessar}>
+            <Profissionais />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/horarios"
+        element={
+          <ProtectedRoute perfis={PERMISSOES.horarios.acessar}>
+            <Horarios />
           </ProtectedRoute>
         }
       />

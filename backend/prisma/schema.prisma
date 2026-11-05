@@ -15,6 +15,7 @@ enum Perfil {
 }
 
 enum StatusAtendimento {
+  AGENDADO
   REALIZADO
   CANCELADO
   FALTOU
@@ -27,7 +28,7 @@ model Usuario {
   // Identificador institucional do aluno (perfil ESTUDANTE); NULL nos demais perfis.
   matricula String?  @unique
   // Curso que o aluno faz (perfil ESTUDANTE); NULL nos demais perfis.
-  curso String?
+  curso     String?
   senhaHash String
   perfil    Perfil
   ativo     Boolean  @default(true)
@@ -36,6 +37,10 @@ model Usuario {
   atendimentosResponsavel Atendimento[] @relation("AtendimentoResponsavel")
   atendimentosCriados     Atendimento[] @relation("AtendimentoCriadoPor")
   auditorias              Auditoria[]
+
+  // Especialidades em que o profissional (perfil PROFISSIONAL) atua; vazio nos demais perfis.
+  especialidades Especialidade[] @relation("ProfissionalEspecialidades")
+  horarios       Horario[]
 }
 
 model Paciente {
@@ -66,7 +71,8 @@ model Especialidade {
   // vários NULL em índice unique, isso garante "nome único entre ativas".
   nomeAtivoChave String? @unique
 
-  atendimentos Atendimento[]
+  atendimentos  Atendimento[]
+  profissionais Usuario[]     @relation("ProfissionalEspecialidades")
 }
 
 model Atendimento {
@@ -105,4 +111,18 @@ model Auditoria {
 
   @@index([entidade, entidadeId])
   @@index([createdAt])
+}
+
+// Disponibilidade semanal do profissional (ex.: segunda 08:00–12:00).
+// Consultas agendadas precisam cair dentro de uma dessas faixas.
+model Horario {
+  id             String @id @default(uuid())
+  profissionalId String
+  diaSemana      Int // 0 = domingo ... 6 = sábado
+  inicio         String // "HH:MM"
+  fim            String // "HH:MM"
+
+  profissional Usuario @relation(fields: [profissionalId], references: [id])
+
+  @@index([profissionalId, diaSemana])
 }

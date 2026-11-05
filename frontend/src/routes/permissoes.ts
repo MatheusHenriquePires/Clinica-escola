@@ -12,6 +12,8 @@ export const PERMISSOES = {
   pacientes: { acessar: TODOS, editar: ['ADMIN', 'RECEPCAO'] as Perfil[] },
   especialidades: { acessar: TODOS, editar: ['ADMIN'] as Perfil[] },
   atendimentos: { acessar: TODOS, editar: TODOS },
+  horarios: { acessar: ['ADMIN', 'PROFISSIONAL'] as Perfil[], editar: ['ADMIN', 'PROFISSIONAL'] as Perfil[] },
+  profissionais: { acessar: ['ADMIN'] as Perfil[], editar: ['ADMIN'] as Perfil[] },
   alunos: { acessar: ['ADMIN'] as Perfil[], editar: ['ADMIN'] as Perfil[] },
 }
 

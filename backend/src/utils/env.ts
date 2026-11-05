@@ -12,6 +12,8 @@ const schema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().default(200),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(5),
   LOGIN_RATE_LIMIT_WINDOW: z.string().default('15 minutes'),
+  // Fuso da clínica: horários de atendimento ("08:00") são interpretados neste fuso.
+  FUSO_CLINICA: z.string().default('America/Recife'),
 })
 
 const parsed = schema.safeParse(process.env)

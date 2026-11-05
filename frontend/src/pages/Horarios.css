@@ -1,0 +1,252 @@
+/* Tela de Horários: agenda da semana + disponibilidade semanal */
+.hor__seletor {
+  min-width: 240px;
+}
+
+.hor__secao {
+  margin-bottom: 1.5rem;
+}
+
+.hor__secao-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.hor__secao-topo h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--azul-escuro);
+}
+
+.hor__secao-topo p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--cinza);
+}
+
+.hor__navegacao {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.hor__navegacao button {
+  min-width: 42px;
+}
+
+/* Grade da semana */
+.hor__semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(104px, 1fr));
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.hor__dia {
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+  padding: 0.6rem;
+  background: #f8fafd;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+}
+
+.hor__dia--hoje {
+  background: #fff;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px rgba(27, 74, 156, 0.12);
+}
+
+.hor__dia-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--azul-escuro);
+}
+
+.hor__dia--hoje .hor__dia-topo strong::after {
+  content: ' · hoje';
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--azul);
+}
+
+.hor__dia-topo span {
+  font-size: 0.8rem;
+  color: var(--cinza);
+}
+
+.hor__dia-faixas {
+  display: flex;
+  flex-direction: column;
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.72rem;
+  color: var(--cinza);
+}
+
+.hor__livre {
+  margin: auto 0;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #9aa6ba;
+}
+
+.hor__consultas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hor__consulta {
+  display: flex;
+  flex-direction: column;
+  padding: 0.45rem 0.55rem;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--azul);
+  border-radius: 8px;
+}
+
+.hor__consulta--realizado {
+  border-left-color: #1f9d55;
+}
+
+.hor__consulta--faltou {
+  border-left-color: #d97706;
+}
+
+.hor__consulta--cancelado {
+  border-left-color: #9aa6ba;
+  opacity: 0.7;
+}
+
+.hor__consulta-hora {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--azul);
+}
+
+.hor__consulta-paciente {
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--texto);
+}
+
+.hor__consulta-info {
+  font-size: 0.72rem;
+  color: var(--cinza);
+}
+
+/* Disponibilidade semanal */
+.hor__disponibilidade {
+  display: flex;
+  flex-direction: column;
+}
+
+.hor__linha {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--borda);
+}
+
+.hor__linha:first-child {
+  border-top: 0;
+}
+
+.hor__linha-dia {
+  color: var(--texto);
+}
+
+.hor__linha-faixas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hor__fechado {
+  font-size: 0.88rem;
+  color: #9aa6ba;
+}
+
+.hor__faixa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--cinza);
+  background: #f6f8fc;
+  border: 1.5px solid var(--borda);
+  border-radius: 10px;
+}
+
+.hor__faixa input {
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  color: var(--texto);
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 7px;
+}
+
+.hor__faixa input:focus {
+  outline: none;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 3px rgba(27, 74, 156, 0.16);
+}
+
+.hor__remover {
+  width: 26px;
+  height: 26px;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--cinza);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hor__remover:hover {
+  color: var(--vermelho);
+  background: #fdeced;
+}
+
+.hor__adicionar {
+  padding: 0.4rem 0.75rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--azul);
+  background: none;
+  border: 1.5px dashed #b9c6e2;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.hor__adicionar:hover {
+  background: #eef2fb;
+  border-color: var(--azul);
+}
+
+@media (max-width: 640px) {
+  .hor__linha {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}

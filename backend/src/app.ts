@@ -5,6 +5,8 @@ import { auditoriaRoutes } from './modules/auditoria/routes.js'
 import { authRoutes } from './modules/auth/routes.js'
 import { especialidadesRoutes } from './modules/especialidades/routes.js'
 import { pacientesRoutes } from './modules/pacientes/routes.js'
+import { profissionaisRoutes } from './modules/profissionais/routes.js'
+import { horariosRoutes } from './modules/horarios/routes.js'
 import { corsPlugin } from './plugins/cors.js'
 import { registrarErrorHandler } from './plugins/error-handler.js'
 import { jwtPlugin } from './plugins/jwt.js'
@@ -44,6 +46,8 @@ export async function buildApp() {
   await app.register(authRoutes, { prefix: '/auth' })
   await app.register(alunosRoutes, { prefix: '/alunos' })
   await app.register(pacientesRoutes, { prefix: '/pacientes' })
+  await app.register(profissionaisRoutes, { prefix: '/profissionais' })
+  await app.register(horariosRoutes, { prefix: '/horarios' })
   await app.register(especialidadesRoutes, { prefix: '/especialidades' })
   await app.register(atendimentosRoutes, { prefix: '/atendimentos' })
   await app.register(auditoriaRoutes, { prefix: '/auditoria' })
