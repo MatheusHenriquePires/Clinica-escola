@@ -8,7 +8,7 @@ Monorepo: `backend` (Fastify + Prisma + PostgreSQL) e `frontend` (React + Vite).
 ## Como rodar
 
 Pré-requisitos: Node 20+, Docker.
-
+as
 ```bash
 # 1. Banco
 docker compose up -d
