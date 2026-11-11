@@ -1,0 +1,190 @@
+.ag__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ag__prof {
+  min-width: 240px;
+}
+
+.ag__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ag__titulo {
+  margin-left: 0.4rem;
+  color: var(--azul-escuro);
+}
+
+.ag__resumo {
+  margin-left: auto;
+  font-size: 0.88rem;
+  color: var(--cinza);
+}
+
+.ag__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  color: var(--cinza);
+}
+
+.ag__legenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ag__cor {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--borda);
+}
+.ag__cor--livre {
+  background: #fff;
+  border-style: dashed;
+  border-color: var(--azul);
+}
+.ag__cor--agendado {
+  background: #e8eef9;
+  border-color: var(--azul);
+}
+.ag__cor--realizado {
+  background: #e6f4ea;
+  border-color: #2e8b4e;
+}
+.ag__cor--faltou {
+  background: #fdecec;
+  border-color: var(--vermelho);
+}
+.ag__cor--fora {
+  background: #f1f3f7;
+}
+
+.ag__grade-wrap {
+  overflow-x: auto;
+}
+
+.ag__grade {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 3px;
+  table-layout: fixed;
+}
+
+.ag__grade thead th {
+  padding: 0.4rem 0.2rem;
+  font-size: 0.85rem;
+  color: var(--azul-escuro);
+  text-align: center;
+}
+
+.ag__grade thead th small {
+  display: block;
+  font-weight: 400;
+  color: var(--cinza);
+}
+
+.ag__grade thead th.ag__hoje {
+  background: var(--azul);
+  color: #fff;
+  border-radius: 8px;
+}
+.ag__grade thead th.ag__hoje small {
+  color: #dfe7f7;
+}
+
+.ag__hora {
+  width: 3.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cinza);
+  text-align: right;
+  padding-right: 0.4rem;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.ag__grade td {
+  height: 2.6rem;
+  padding: 0;
+  vertical-align: top;
+  border-radius: 6px;
+}
+
+.ag__fora {
+  background: #f1f3f7;
+}
+
+.ag__passado {
+  background: repeating-linear-gradient(45deg, #f7f8fb, #f7f8fb 6px, #eef1f6 6px, #eef1f6 12px);
+}
+
+.ag__livre button {
+  width: 100%;
+  height: 100%;
+  min-height: 2.6rem;
+  font: inherit;
+  font-size: 0.78rem;
+  color: transparent;
+  background: #fff;
+  border: 1px dashed #b9c6e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.ag__livre button:hover,
+.ag__livre button:focus-visible {
+  color: var(--azul);
+  background: #eef3fc;
+  border-color: var(--azul);
+  outline: none;
+}
+
+.ag__consulta {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 2.6rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border-left: 3px solid var(--azul);
+  border-radius: 6px;
+  background: #e8eef9;
+  overflow: hidden;
+}
+
+.ag__consulta strong,
+.ag__consulta span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ag__consulta span {
+  color: var(--cinza);
+}
+
+.ag__consulta--realizado {
+  background: #e6f4ea;
+  border-left-color: #2e8b4e;
+}
+.ag__consulta--faltou {
+  background: #fdecec;
+  border-left-color: var(--vermelho);
+}

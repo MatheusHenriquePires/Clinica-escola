@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent, type InputHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { AbasAtivos, Aviso, Paginacao, TopoModal, useModal } from '../components/ui'
 import { api, ApiError } from '../services/api'
-import './Alunos.css'
+import '../styles/cadastro.css'
 
 interface Profissional {
   id: string
@@ -21,11 +22,7 @@ interface Lista {
 type Campo = 'nome' | 'email' | 'senha'
 type CampoErro = Campo | 'especialidadeIds'
 type Erros = Partial<Record<CampoErro, string>>
-type Painel =
-  | { tipo: 'novo' }
-  | { tipo: 'editar'; p: Profissional }
-  | { tipo: 'senha'; p: Profissional }
-  | null
+type Painel = { tipo: 'novo' } | { tipo: 'editar'; p: Profissional } | { tipo: 'senha'; p: Profissional } | null
 
 const VAZIO = { nome: '', email: '', senha: '', especialidadeIds: [] as string[] }
 
@@ -82,19 +79,8 @@ export function Profissionais() {
     void carregar()
   }, [carregar])
 
-  useEffect(() => {
-    if (!painel) return
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !salvando) setPainel(null)
-    }
-    document.addEventListener('keydown', aoTeclar)
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', aoTeclar)
-      document.body.style.overflow = overflow
-    }
-  }, [painel, salvando])
+  // Modal: Esc fecha (exceto durante o salvamento) e a página de fundo não rola.
+  useModal(!!painel, () => !salvando && setPainel(null))
 
   const abrir = (p: Exclude<Painel, null>) => {
     setForm(
@@ -189,16 +175,16 @@ export function Profissionais() {
   }
 
   const campo = (nome: Campo, rotulo: string, props: InputHTMLAttributes<HTMLInputElement>) => (
-    <label className="alunos__campo">
+    <label className="cad__campo">
       {rotulo}
       <input
         {...props}
         value={form[nome]}
         onChange={(e) => setForm({ ...form, [nome]: e.target.value })}
         aria-invalid={!!errosCampo[nome]}
-        className={errosCampo[nome] ? 'alunos__invalido' : undefined}
+        className={errosCampo[nome] ? 'cad__invalido' : undefined}
       />
-      {errosCampo[nome] && <span className="alunos__erro-campo">{errosCampo[nome]}</span>}
+      {errosCampo[nome] && <span className="cad__erro-campo">{errosCampo[nome]}</span>}
     </label>
   )
 
@@ -206,9 +192,7 @@ export function Profissionais() {
   const opcoesEspecialidade: Opcao[] = [
     ...especialidades,
     ...(painel?.tipo === 'editar'
-      ? painel.p.especialidades
-          .filter((e) => !e.ativa)
-          .map((e) => ({ id: e.id, nome: `${e.nome} (inativa)` }))
+      ? painel.p.especialidades.filter((e) => !e.ativa).map((e) => ({ id: e.id, nome: `${e.nome} (inativa)` }))
       : []),
   ]
 
@@ -223,49 +207,42 @@ export function Profissionais() {
 
   return (
     <Layout>
-      <Link to="/" className="alunos__voltar">
+      <Link to="/" className="cad__voltar">
         ← Menu principal
       </Link>
 
-      <div className="alunos__cabecalho">
+      <div className="cad__cabecalho">
         <div>
           <h1>Profissionais</h1>
           <p>Profissionais com acesso ao sistema da clínica.</p>
         </div>
-        <button className="alunos__primario" onClick={() => abrir({ tipo: 'novo' })}>
+        <button className="cad__primario" onClick={() => abrir({ tipo: 'novo' })}>
           + Novo profissional
         </button>
       </div>
 
-      {aviso && (
-        <p role="status" className="alunos__aviso">
-          {aviso}
-          <button aria-label="Fechar aviso" onClick={() => setAviso('')}>
-            ×
-          </button>
-        </p>
-      )}
+      <Aviso texto={aviso} onFechar={() => setAviso('')} />
 
       {painel && (
-        <div className="alunos__fundo">
+        <div className="cad__fundo">
           <form
-            className="alunos__form alunos__modal"
+            className="cad__form cad__modal"
             onSubmit={salvar}
             noValidate
             role="dialog"
             aria-modal="true"
             aria-labelledby="prof-modal-titulo"
           >
-            <div className="alunos__modal-topo">
-              <h2 id="prof-modal-titulo">{titulo}</h2>
-              <button type="button" className="alunos__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
-                ×
-              </button>
-            </div>
-            <div className="alunos__linha">
+            <TopoModal id="prof-modal-titulo" titulo={titulo} onFechar={() => setPainel(null)} />
+            <div className="cad__linha">
               {painel.tipo !== 'senha' && (
                 <>
-                  {campo('nome', 'Nome completo', { type: 'text', autoComplete: 'off', maxLength: 120, autoFocus: true })}
+                  {campo('nome', 'Nome completo', {
+                    type: 'text',
+                    autoComplete: 'off',
+                    maxLength: 120,
+                    autoFocus: true,
+                  })}
                   {campo('email', 'Email de acesso', { type: 'email', autoComplete: 'off', maxLength: 160 })}
                 </>
               )}
@@ -274,7 +251,7 @@ export function Profissionais() {
               <fieldset className="prof__especialidades" aria-invalid={!!errosCampo.especialidadeIds}>
                 <legend>Especialidades</legend>
                 {opcoesEspecialidade.length === 0 ? (
-                  <p className="alunos__dica">
+                  <p className="cad__dica">
                     Nenhuma especialidade ativa. Cadastre uma em <Link to="/especialidades">Especialidades</Link>.
                   </p>
                 ) : (
@@ -301,12 +278,10 @@ export function Profissionais() {
                     })}
                   </div>
                 )}
-                {errosCampo.especialidadeIds && (
-                  <span className="alunos__erro-campo">{errosCampo.especialidadeIds}</span>
-                )}
+                {errosCampo.especialidadeIds && <span className="cad__erro-campo">{errosCampo.especialidadeIds}</span>}
               </fieldset>
             )}
-            <div className="alunos__linha">
+            <div className="cad__linha">
               {painel.tipo !== 'editar' &&
                 campo('senha', painel.tipo === 'novo' ? 'Senha inicial' : 'Nova senha', {
                   type: verSenha ? 'text' : 'password',
@@ -316,26 +291,26 @@ export function Profissionais() {
                 })}
             </div>
             {painel.tipo !== 'editar' && (
-              <label className="alunos__ver-senha">
+              <label className="cad__ver-senha">
                 <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} />
                 Mostrar senha
               </label>
             )}
-            <p className="alunos__dica">
+            <p className="cad__dica">
               {painel.tipo === 'editar'
                 ? 'Alterar o email muda o login do profissional. A alteração fica registrada na auditoria.'
                 : 'Mínimo de 8 caracteres, com letra e número. O perfil é Profissional.'}
             </p>
             {erroForm && (
-              <p role="alert" className="alunos__erro">
+              <p role="alert" className="cad__erro">
                 {erroForm}
               </p>
             )}
-            <div className="alunos__acoes">
-              <button type="button" className="alunos__secundario" onClick={() => setPainel(null)}>
+            <div className="cad__acoes">
+              <button type="button" className="cad__secundario" onClick={() => setPainel(null)}>
                 Cancelar
               </button>
-              <button type="submit" className="alunos__primario" disabled={salvando}>
+              <button type="submit" className="cad__primario" disabled={salvando}>
                 {salvando ? 'Salvando…' : painel.tipo === 'senha' ? 'Redefinir senha' : 'Salvar'}
               </button>
             </div>
@@ -343,45 +318,36 @@ export function Profissionais() {
         </div>
       )}
 
-      <section className="alunos__painel">
-        <div className="alunos__filtros">
-          <div className="alunos__abas" role="tablist">
-            {[true, false].map((v) => (
-              <button
-                key={String(v)}
-                role="tab"
-                aria-selected={ativos === v}
-                className={ativos === v ? 'alunos__aba alunos__aba--ativa' : 'alunos__aba'}
-                onClick={() => {
-                  setAtivos(v)
-                  setPage(1)
-                }}
-              >
-                {v ? 'Ativos' : 'Inativos'}
-              </button>
-            ))}
-          </div>
-          <form className="alunos__busca" onSubmit={buscar}>
+      <section className="cad__painel">
+        <div className="cad__filtros">
+          <AbasAtivos
+            ativos={ativos}
+            onMudar={(v) => {
+              setAtivos(v)
+              setPage(1)
+            }}
+          />
+          <form className="cad__busca" onSubmit={buscar}>
             <input
               type="search"
               placeholder="Buscar por nome ou email"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
             />
-            <button type="submit" className="alunos__secundario">
+            <button type="submit" className="cad__secundario">
               Buscar
             </button>
           </form>
         </div>
 
         {falhaLista ? (
-          <p role="alert" className="alunos__erro">
+          <p role="alert" className="cad__erro">
             {falhaLista}
           </p>
         ) : !lista ? (
-          <p className="alunos__vazio">Carregando…</p>
+          <p className="cad__vazio">Carregando…</p>
         ) : lista.data.length === 0 ? (
-          <p className="alunos__vazio">
+          <p className="cad__vazio">
             {termo
               ? 'Nenhum profissional encontrado para esta busca.'
               : ativos
@@ -389,8 +355,8 @@ export function Profissionais() {
                 : 'Nenhum profissional inativo.'}
           </p>
         ) : (
-          <div className="alunos__tabela-wrap">
-            <table className="alunos__tabela">
+          <div className="cad__tabela-wrap">
+            <table className="cad__tabela">
               <thead>
                 <tr>
                   <th>Nome</th>
@@ -415,30 +381,30 @@ export function Profissionais() {
                           ))}
                         </span>
                       ) : (
-                        <span className="alunos__pendente">Nenhuma</span>
+                        <span className="cad__pendente">Nenhuma</span>
                       )}
                     </td>
                     <td>{new Date(p.createdAt).toLocaleDateString('pt-BR')}</td>
-                    <td className="alunos__celula-acao">
+                    <td className="cad__celula-acao">
                       {confirmando === p.id ? (
-                        <span className="alunos__confirma">
+                        <span className="cad__confirma">
                           {p.ativo ? 'Inativar este profissional?' : 'Reativar este profissional?'}
-                          <button className="alunos__perigo" onClick={() => alterarStatus(p)}>
+                          <button className="cad__perigo" onClick={() => alterarStatus(p)}>
                             Confirmar
                           </button>
-                          <button className="alunos__secundario" onClick={() => setConfirmando(null)}>
+                          <button className="cad__secundario" onClick={() => setConfirmando(null)}>
                             Cancelar
                           </button>
                         </span>
                       ) : (
-                        <span className="alunos__botoes">
-                          <button className="alunos__secundario" onClick={() => abrir({ tipo: 'editar', p })}>
+                        <span className="cad__botoes">
+                          <button className="cad__secundario" onClick={() => abrir({ tipo: 'editar', p })}>
                             Editar
                           </button>
-                          <button className="alunos__secundario" onClick={() => abrir({ tipo: 'senha', p })}>
+                          <button className="cad__secundario" onClick={() => abrir({ tipo: 'senha', p })}>
                             Senha
                           </button>
-                          <button className="alunos__secundario" onClick={() => setConfirmando(p.id)}>
+                          <button className="cad__secundario" onClick={() => setConfirmando(p.id)}>
                             {p.ativo ? 'Inativar' : 'Reativar'}
                           </button>
                         </span>
@@ -451,23 +417,7 @@ export function Profissionais() {
           </div>
         )}
 
-        {lista && lista.meta.totalPages > 1 && (
-          <div className="alunos__paginacao">
-            <button className="alunos__secundario" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              ← Anterior
-            </button>
-            <span>
-              Página {lista.meta.page} de {lista.meta.totalPages}
-            </span>
-            <button
-              className="alunos__secundario"
-              disabled={page >= lista.meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Próxima →
-            </button>
-          </div>
-        )}
+        {lista && <Paginacao meta={lista.meta} onPagina={setPage} />}
       </section>
     </Layout>
   )

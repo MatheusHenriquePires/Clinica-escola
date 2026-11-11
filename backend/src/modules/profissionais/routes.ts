@@ -1,7 +1,7 @@
 // Cadastro de profissional = usuário com perfil PROFISSIONAL. Somente ADMIN gerencia.
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { authenticate } from '../../middlewares/authenticate.js'
+import { authenticate, revogarSessoes } from '../../middlewares/authenticate.js'
 import { authorize } from '../../middlewares/authorize.js'
 import { AppError } from '../../utils/errors.js'
 import { hashSenha } from '../../utils/password.js'
@@ -78,8 +78,8 @@ export async function profissionaisRoutes(app: FastifyInstance) {
   app.addHook('onRequest', authenticate)
 
   // Lista enxuta de profissionais ativos com suas especialidades (formulário de atendimento).
-  // ADMIN e RECEPCAO recebem todos; o PROFISSIONAL recebe só a si mesmo.
-  app.get('/opcoes', { preHandler: [authorize('ADMIN', 'RECEPCAO', 'PROFISSIONAL')] }, async (req) =>
+  // ADMIN, RECEPCAO e ESTUDANTE (que escolhe o supervisor) recebem todos; o PROFISSIONAL só a si mesmo.
+  app.get('/opcoes', { preHandler: [authorize('ADMIN', 'RECEPCAO', 'PROFISSIONAL', 'ESTUDANTE')] }, async (req) =>
     prisma.usuario.findMany({
       where: {
         perfil: 'PROFISSIONAL',
@@ -167,7 +167,7 @@ export async function profissionaisRoutes(app: FastifyInstance) {
       await buscarProfissional(id)
       const senhaHash = await hashSenha(senha)
       await prisma.$transaction(async (tx) => {
-        await tx.usuario.update({ where: { id }, data: { senhaHash } })
+        await tx.usuario.update({ where: { id }, data: { senhaHash, ...revogarSessoes } })
         await registrarAuditoria({ usuarioId: req.user.sub, entidade: 'Profissional', entidadeId: id, acao: 'REDEFINIR_SENHA' }, tx)
       })
       return reply.status(204).send()

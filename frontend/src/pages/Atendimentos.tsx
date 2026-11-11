@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Fragment, useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { Aviso, Paginacao, TopoModal, useModal } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { podeEditar } from '../routes/permissoes'
 import { api, ApiError } from '../services/api'
-import './Alunos.css'
+import '../styles/cadastro.css'
 
 type Status = 'AGENDADO' | 'REALIZADO' | 'CANCELADO' | 'FALTOU'
 
@@ -17,7 +18,8 @@ interface Atendimento {
   finalizado: boolean
   paciente: { id: string; nome: string }
   especialidade: { id: string; nome: string }
-  responsavel: { id: string; nome: string }
+  responsavel: { id: string; nome: string; perfil: string }
+  supervisor: { id: string; nome: string } | null
 }
 
 interface Lista {
@@ -35,10 +37,16 @@ interface ListaOpcoes {
   data: Opcao[]
 }
 
-type Campo = 'pacienteId' | 'especialidadeId' | 'responsavelId' | 'dataHora' | 'status' | 'descricao' | 'conduta'
+type Campo =
+  'pacienteId' | 'especialidadeId' | 'responsavelId' | 'supervisorId' | 'dataHora' | 'status' | 'descricao' | 'conduta'
 type Erros = Partial<Record<Campo, string>>
 
-const STATUS_ROTULO: Record<Status, string> = { AGENDADO: 'Agendado', REALIZADO: 'Realizado', CANCELADO: 'Cancelado', FALTOU: 'Faltou' }
+const STATUS_ROTULO: Record<Status, string> = {
+  AGENDADO: 'Agendado',
+  REALIZADO: 'Realizado',
+  CANCELADO: 'Cancelado',
+  FALTOU: 'Faltou',
+}
 const LIMITE = 10
 
 /** Converte ISO em valor de <input type="datetime-local"> (horário local). */
@@ -53,6 +61,7 @@ const vazio = () => ({
   pacienteId: '',
   especialidadeId: '',
   responsavelId: '',
+  supervisorId: '',
   dataHora: agoraInput(),
   status: 'REALIZADO' as Status,
   descricao: '',
@@ -68,13 +77,18 @@ export function Atendimentos() {
   // Admin e recepção escolhem o responsável; os demais são o próprio responsável.
   const escolheResponsavel = ehAdmin || ehRecepcao
   // A recepção só cuida da agenda (agendar e cancelar).
-  const statusDoForm: Status[] = ehRecepcao ? ['AGENDADO', 'CANCELADO'] : ['AGENDADO', 'REALIZADO', 'FALTOU', 'CANCELADO']
+  const statusDoForm: Status[] = ehRecepcao
+    ? ['AGENDADO', 'CANCELADO']
+    : ['AGENDADO', 'REALIZADO', 'FALTOU', 'CANCELADO']
   const podeFinalizar = perfil === 'ADMIN' || perfil === 'PROFISSIONAL'
+  // Links da Agenda e do Histórico do paciente chegam com parâmetros na URL.
+  const [params, setParams] = useSearchParams()
 
   const [lista, setLista] = useState<Lista | null>(null)
   const [falhaLista, setFalhaLista] = useState('')
   const [page, setPage] = useState(1)
-  const [filtroPaciente, setFiltroPaciente] = useState('')
+  const [filtroPaciente, setFiltroPaciente] = useState(() => params.get('pacienteId') ?? '')
+  const [pendentesRevisao, setPendentesRevisao] = useState(() => params.get('pendentesRevisao') === 'true')
   const [filtroEsp, setFiltroEsp] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('')
   const [de, setDe] = useState('')
@@ -101,13 +115,11 @@ export function Atendimentos() {
     api<ListaOpcoes>('/especialidades?limit=100')
       .then((r) => setEspecialidades(r.data))
       .catch(() => setEspecialidades([]))
-    // ADMIN recebe todos os profissionais; o PROFISSIONAL recebe só a si mesmo.
-    if (escolheResponsavel || perfil === 'PROFISSIONAL') {
-      api<OpcaoProfissional[]>('/profissionais/opcoes')
-        .then(setProfissionais)
-        .catch(() => setProfissionais([]))
-    }
-  }, [escolheResponsavel, perfil])
+    // ADMIN, recepção e estudante (escolhe o supervisor) recebem todos; o PROFISSIONAL só a si mesmo.
+    api<OpcaoProfissional[]>('/profissionais/opcoes')
+      .then(setProfissionais)
+      .catch(() => setProfissionais([]))
+  }, [])
 
   const carregar = useCallback(async () => {
     setFalhaLista('')
@@ -117,50 +129,60 @@ export function Atendimentos() {
     if (filtroStatus) qs.set('status', filtroStatus)
     if (de) qs.set('de', new Date(`${de}T00:00:00`).toISOString())
     if (ate) qs.set('ate', new Date(`${ate}T23:59:59`).toISOString())
+    if (pendentesRevisao) qs.set('pendentesRevisao', 'true')
     try {
       setLista(await api<Lista>(`/atendimentos?${qs}`))
     } catch (err) {
       setLista(null)
       setFalhaLista(err instanceof Error ? err.message : 'Não foi possível carregar os atendimentos.')
     }
-  }, [page, ordem, filtroPaciente, filtroEsp, filtroStatus, de, ate])
+  }, [page, ordem, filtroPaciente, filtroEsp, filtroStatus, de, ate, pendentesRevisao])
 
   useEffect(() => {
     void carregar()
   }, [carregar])
 
-  useEffect(() => {
-    if (!modal) return
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !salvando) setModal(null)
-    }
-    document.addEventListener('keydown', aoTeclar)
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', aoTeclar)
-      document.body.style.overflow = overflow
-    }
-  }, [modal, salvando])
+  // Modal: Esc fecha (exceto durante o salvamento) e a página de fundo não rola.
+  useModal(!!modal, () => !salvando && setModal(null))
 
-  const abrir = (a: Atendimento | null) => {
+  const abrir = (a: Atendimento | null, preenchido: Partial<ReturnType<typeof vazio>> = {}) => {
     setForm(
       a
         ? {
             pacienteId: a.paciente.id,
             especialidadeId: a.especialidade.id,
             responsavelId: a.responsavel.id,
+            supervisorId: a.supervisor?.id ?? '',
             dataHora: paraInput(a.dataHora),
             status: a.status,
             descricao: a.descricao ?? '',
             conduta: a.conduta ?? '',
           }
-        : { ...vazio(), status: ehRecepcao ? 'AGENDADO' : 'REALIZADO' },
+        : { ...vazio(), status: ehRecepcao ? 'AGENDADO' : 'REALIZADO', ...preenchido },
     )
     setErrosCampo({})
     setErroForm('')
     setModal({ editando: a })
   }
+
+  // ?novo=1 (vindo da Agenda ou do Histórico do paciente): abre o formulário já preenchido.
+  useEffect(() => {
+    if (params.get('novo') !== '1' || !podeRegistrar) return
+    const dataHora = params.get('dataHora')
+    abrir(null, {
+      pacienteId: params.get('pacienteId') ?? '',
+      responsavelId: params.get('responsavelId') ?? '',
+      ...(dataHora && { dataHora: paraInput(dataHora), status: 'AGENDADO' as Status }),
+    })
+    setParams({}, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- roda só ao chegar pela URL
+  }, [])
+
+  // Atendimento de estudante precisa de um profissional supervisor da especialidade.
+  const precisaSupervisor = modal?.editando ? modal.editando.responsavel.perfil === 'ESTUDANTE' : perfil === 'ESTUDANTE'
+  const supervisores = profissionais.filter(
+    (p) => !form.especialidadeId || p.especialidades.some((e) => e.id === form.especialidadeId),
+  )
 
   const salvar = async (e: FormEvent) => {
     e.preventDefault()
@@ -169,6 +191,7 @@ export function Atendimentos() {
     if (!form.pacienteId) erros.pacienteId = 'Selecione o paciente.'
     if (!form.especialidadeId) erros.especialidadeId = 'Selecione a especialidade.'
     if (escolheResponsavel && !form.responsavelId) erros.responsavelId = 'Selecione o profissional responsável.'
+    if (precisaSupervisor && !form.supervisorId) erros.supervisorId = 'Selecione o profissional supervisor.'
     if (!form.dataHora) erros.dataHora = 'Informe a data e a hora.'
     else if (form.status === 'REALIZADO' && new Date(form.dataHora).getTime() > Date.now() + 5 * 60_000) {
       erros.dataHora = 'Um atendimento realizado não pode ter data futura.'
@@ -186,6 +209,7 @@ export function Atendimentos() {
       pacienteId: form.pacienteId,
       especialidadeId: form.especialidadeId,
       ...(escolheResponsavel && { responsavelId: form.responsavelId }),
+      ...(precisaSupervisor && { supervisorId: form.supervisorId }),
       dataHora: new Date(form.dataHora).toISOString(),
       status: form.status,
       descricao: form.descricao,
@@ -220,7 +244,11 @@ export function Atendimentos() {
   const finalizar = async (a: Atendimento) => {
     try {
       await api(`/atendimentos/${a.id}/finalizar`, { method: 'PATCH' })
-      setAviso('Atendimento finalizado. Ele não poderá mais ser editado.')
+      setAviso(
+        a.supervisor
+          ? `Atendimento de ${a.responsavel.nome} validado. Ele não poderá mais ser editado.`
+          : 'Atendimento finalizado. Ele não poderá mais ser editado.',
+      )
     } catch (err) {
       setAviso(err instanceof Error ? err.message : 'Erro inesperado.')
     } finally {
@@ -246,6 +274,12 @@ export function Atendimentos() {
     : especialidades
 
   const alterarCampo = (campo: Campo, valor: string) => {
+    if (campo === 'especialidadeId') {
+      // Trocou a especialidade: limpa o supervisor se ele não atua nela.
+      const sup = profissionais.find((p) => p.id === form.supervisorId)
+      const manter = !sup || sup.especialidades.some((e) => e.id === valor)
+      return setForm({ ...form, especialidadeId: valor, supervisorId: manter ? form.supervisorId : '' })
+    }
     if (campo !== 'responsavelId') return setForm({ ...form, [campo]: valor })
     // Trocou o responsável: limpa a especialidade se ele não atende nela.
     const prof = profissionais.find((p) => p.id === valor)
@@ -254,13 +288,13 @@ export function Atendimentos() {
   }
 
   const select = (campo: Campo, rotulo: string, opcoes: Opcao[], placeholder: string) => (
-    <label className="alunos__campo">
+    <label className="cad__campo">
       {rotulo}
       <select
         value={form[campo]}
         onChange={(e) => alterarCampo(campo, e.target.value)}
         aria-invalid={!!errosCampo[campo]}
-        className={errosCampo[campo] ? 'alunos__invalido' : undefined}
+        className={errosCampo[campo] ? 'cad__invalido' : undefined}
       >
         <option value="">{placeholder}</option>
         {opcoes.map((o) => (
@@ -269,60 +303,55 @@ export function Atendimentos() {
           </option>
         ))}
       </select>
-      {errosCampo[campo] && <span className="alunos__erro-campo">{errosCampo[campo]}</span>}
+      {errosCampo[campo] && <span className="cad__erro-campo">{errosCampo[campo]}</span>}
     </label>
   )
 
   return (
     <Layout>
-      <Link to="/" className="alunos__voltar">
+      <Link to="/" className="cad__voltar">
         ← Menu principal
       </Link>
 
-      <div className="alunos__cabecalho">
+      <div className="cad__cabecalho">
         <div>
           <h1>Atendimentos</h1>
           <p>
             {perfil === 'ADMIN' || perfil === 'RECEPCAO'
               ? 'Histórico de atendimentos da clínica.'
-              : 'Os atendimentos em que você é o responsável.'}
+              : perfil === 'PROFISSIONAL'
+                ? 'Os atendimentos em que você é o responsável ou supervisor.'
+                : 'Os atendimentos em que você é o responsável.'}
           </p>
         </div>
         {podeRegistrar && (
-          <button className="alunos__primario" onClick={() => abrir(null)}>
+          <button className="cad__primario" onClick={() => abrir(null)}>
             {ehRecepcao ? '+ Agendar consulta' : '+ Novo atendimento'}
           </button>
         )}
       </div>
 
-      {aviso && (
-        <p role="status" className="alunos__aviso">
-          {aviso}
-          <button aria-label="Fechar aviso" onClick={() => setAviso('')}>
-            ×
-          </button>
-        </p>
-      )}
+      <Aviso texto={aviso} onFechar={() => setAviso('')} />
 
       {modal && (
-        <div className="alunos__fundo">
+        <div className="cad__fundo">
           <form
-            className="alunos__form alunos__modal"
+            className="cad__form cad__modal"
             onSubmit={salvar}
             noValidate
             role="dialog"
             aria-modal="true"
             aria-labelledby="atend-modal-titulo"
           >
-            <div className="alunos__modal-topo">
-              <h2 id="atend-modal-titulo">{modal.editando ? 'Editar atendimento' : ehRecepcao ? 'Agendar consulta' : 'Registrar atendimento'}</h2>
-              <button type="button" className="alunos__fechar" aria-label="Fechar" onClick={() => setModal(null)}>
-                ×
-              </button>
-            </div>
-            <div className="alunos__linha">
+            <TopoModal
+              id="atend-modal-titulo"
+              titulo={modal.editando ? 'Editar atendimento' : ehRecepcao ? 'Agendar consulta' : 'Registrar atendimento'}
+              onFechar={() => setModal(null)}
+            />
+            <div className="cad__linha">
               {select('pacienteId', 'Paciente', pacientes, 'Selecione o paciente')}
-              {escolheResponsavel && select('responsavelId', 'Profissional responsável', profissionais, 'Selecione o profissional')}
+              {escolheResponsavel &&
+                select('responsavelId', 'Profissional responsável', profissionais, 'Selecione o profissional')}
               {select(
                 'especialidadeId',
                 'Especialidade',
@@ -333,18 +362,25 @@ export function Atendimentos() {
                     ? 'Selecione a especialidade'
                     : 'O profissional não tem especialidades ativas',
               )}
-              <label className="alunos__campo">
+              {precisaSupervisor &&
+                select(
+                  'supervisorId',
+                  'Supervisor (valida o atendimento)',
+                  supervisores,
+                  supervisores.length ? 'Selecione o supervisor' : 'Nenhum profissional nesta especialidade',
+                )}
+              <label className="cad__campo">
                 Data e hora
                 <input
                   type="datetime-local"
                   value={form.dataHora}
                   onChange={(e) => setForm({ ...form, dataHora: e.target.value })}
                   aria-invalid={!!errosCampo.dataHora}
-                  className={errosCampo.dataHora ? 'alunos__invalido' : undefined}
+                  className={errosCampo.dataHora ? 'cad__invalido' : undefined}
                 />
-                {errosCampo.dataHora && <span className="alunos__erro-campo">{errosCampo.dataHora}</span>}
+                {errosCampo.dataHora && <span className="cad__erro-campo">{errosCampo.dataHora}</span>}
               </label>
-              <label className="alunos__campo">
+              <label className="cad__campo">
                 Situação
                 <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Status })}>
                   {statusDoForm.map((s) => (
@@ -357,36 +393,36 @@ export function Atendimentos() {
             </div>
             {!ehRecepcao && (
               <>
-            <label className="alunos__campo">
-              Descrição do atendimento
-              <textarea
-                rows={4}
-                maxLength={4000}
-                value={form.descricao}
-                onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-              />
-            </label>
-            <label className="alunos__campo">
-              Conduta / encaminhamento
-              <textarea
-                rows={3}
-                maxLength={4000}
-                value={form.conduta}
-                onChange={(e) => setForm({ ...form, conduta: e.target.value })}
-              />
-            </label>
+                <label className="cad__campo">
+                  Descrição do atendimento
+                  <textarea
+                    rows={4}
+                    maxLength={4000}
+                    value={form.descricao}
+                    onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                  />
+                </label>
+                <label className="cad__campo">
+                  Conduta / encaminhamento
+                  <textarea
+                    rows={3}
+                    maxLength={4000}
+                    value={form.conduta}
+                    onChange={(e) => setForm({ ...form, conduta: e.target.value })}
+                  />
+                </label>
               </>
             )}
             {erroForm && (
-              <p role="alert" className="alunos__erro">
+              <p role="alert" className="cad__erro">
                 {erroForm}
               </p>
             )}
-            <div className="alunos__acoes">
-              <button type="button" className="alunos__secundario" onClick={() => setModal(null)}>
+            <div className="cad__acoes">
+              <button type="button" className="cad__secundario" onClick={() => setModal(null)}>
                 Cancelar
               </button>
-              <button type="submit" className="alunos__primario" disabled={salvando}>
+              <button type="submit" className="cad__primario" disabled={salvando}>
                 {salvando ? 'Salvando…' : 'Salvar'}
               </button>
             </div>
@@ -394,9 +430,9 @@ export function Atendimentos() {
         </div>
       )}
 
-      <section className="alunos__painel">
-        <div className="alunos__filtros-grade">
-          <label className="alunos__filtro">
+      <section className="cad__painel">
+        <div className="cad__filtros-grade">
+          <label className="cad__filtro">
             Paciente
             <select value={filtroPaciente} onChange={(e) => filtrar(() => setFiltroPaciente(e.target.value))}>
               <option value="">Todos</option>
@@ -407,7 +443,7 @@ export function Atendimentos() {
               ))}
             </select>
           </label>
-          <label className="alunos__filtro">
+          <label className="cad__filtro">
             Especialidade
             <select value={filtroEsp} onChange={(e) => filtrar(() => setFiltroEsp(e.target.value))}>
               <option value="">Todas</option>
@@ -418,7 +454,7 @@ export function Atendimentos() {
               ))}
             </select>
           </label>
-          <label className="alunos__filtro">
+          <label className="cad__filtro">
             Situação
             <select value={filtroStatus} onChange={(e) => filtrar(() => setFiltroStatus(e.target.value))}>
               <option value="">Todas</option>
@@ -429,34 +465,44 @@ export function Atendimentos() {
               ))}
             </select>
           </label>
-          <label className="alunos__filtro">
+          <label className="cad__filtro">
             De
             <input type="date" value={de} onChange={(e) => filtrar(() => setDe(e.target.value))} />
           </label>
-          <label className="alunos__filtro">
+          <label className="cad__filtro">
             Até
             <input type="date" value={ate} onChange={(e) => filtrar(() => setAte(e.target.value))} />
           </label>
-          <label className="alunos__filtro">
+          <label className="cad__filtro">
             Ordenar por
             <select value={ordem} onChange={(e) => filtrar(() => setOrdem(e.target.value as 'asc' | 'desc'))}>
               <option value="desc">Mais recentes primeiro</option>
               <option value="asc">Mais antigos primeiro</option>
             </select>
           </label>
+          {podeFinalizar && (
+            <label className="cad__ver-senha">
+              <input
+                type="checkbox"
+                checked={pendentesRevisao}
+                onChange={(e) => filtrar(() => setPendentesRevisao(e.target.checked))}
+              />
+              Só atendimentos de estudantes aguardando validação
+            </label>
+          )}
         </div>
 
         {falhaLista ? (
-          <p role="alert" className="alunos__erro">
+          <p role="alert" className="cad__erro">
             {falhaLista}
           </p>
         ) : !lista ? (
-          <p className="alunos__vazio">Carregando…</p>
+          <p className="cad__vazio">Carregando…</p>
         ) : lista.data.length === 0 ? (
-          <p className="alunos__vazio">Nenhum atendimento encontrado.</p>
+          <p className="cad__vazio">Nenhum atendimento encontrado.</p>
         ) : (
-          <div className="alunos__tabela-wrap">
-            <table className="alunos__tabela">
+          <div className="cad__tabela-wrap">
+            <table className="cad__tabela">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -469,43 +515,53 @@ export function Atendimentos() {
               </thead>
               <tbody>
                 {lista.data.map((a) => (
-                  <>
-                    <tr key={a.id}>
-                      <td>{new Date(a.dataHora).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                  <Fragment key={a.id}>
+                    <tr>
+                      <td>
+                        {new Date(a.dataHora).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </td>
                       <td>{a.paciente.nome}</td>
                       <td>{a.especialidade.nome}</td>
-                      <td>{a.responsavel.nome}</td>
+                      <td>
+                        {a.responsavel.nome}
+                        {a.supervisor && <span className="cad__pendente"> · sup. {a.supervisor.nome}</span>}
+                      </td>
                       <td>
                         {STATUS_ROTULO[a.status]}
-                        {a.finalizado && ' · Finalizado'}
+                        {a.finalizado
+                          ? a.supervisor
+                            ? ' · Validado'
+                            : ' · Finalizado'
+                          : a.supervisor &&
+                            a.status !== 'AGENDADO' && <span className="cad__pendente"> · aguardando validação</span>}
                       </td>
-                      <td className="alunos__celula-acao">
+                      <td className="cad__celula-acao">
                         {confirmando === a.id ? (
-                          <span className="alunos__confirma">
-                            Finalizar? Não poderá mais ser editado.
-                            <button className="alunos__perigo" onClick={() => finalizar(a)}>
+                          <span className="cad__confirma">
+                            {a.supervisor ? 'Validar?' : 'Finalizar?'} Não poderá mais ser editado.
+                            <button className="cad__perigo" onClick={() => finalizar(a)}>
                               Confirmar
                             </button>
-                            <button className="alunos__secundario" onClick={() => setConfirmando(null)}>
+                            <button className="cad__secundario" onClick={() => setConfirmando(null)}>
                               Cancelar
                             </button>
                           </span>
                         ) : (
-                          <span className="alunos__botoes">
+                          <span className="cad__botoes">
                             <button
-                              className="alunos__secundario"
+                              className="cad__secundario"
                               onClick={() => setAberto(aberto === a.id ? null : a.id)}
                             >
                               {aberto === a.id ? 'Ocultar' : 'Detalhes'}
                             </button>
                             {podeRegistrar && !a.finalizado && (!ehRecepcao || a.status === 'AGENDADO') && (
-                              <button className="alunos__secundario" onClick={() => abrir(a)}>
+                              <button className="cad__secundario" onClick={() => abrir(a)}>
                                 Editar
                               </button>
                             )}
                             {podeFinalizar && !a.finalizado && a.status !== 'AGENDADO' && (
-                              <button className="alunos__secundario" onClick={() => setConfirmando(a.id)}>
-                                Finalizar
+                              <button className="cad__secundario" onClick={() => setConfirmando(a.id)}>
+                                {a.supervisor ? 'Validar' : 'Finalizar'}
                               </button>
                             )}
                           </span>
@@ -524,30 +580,14 @@ export function Atendimentos() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         )}
 
-        {lista && lista.meta.totalPages > 1 && (
-          <div className="alunos__paginacao">
-            <button className="alunos__secundario" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              ← Anterior
-            </button>
-            <span>
-              Página {lista.meta.page} de {lista.meta.totalPages}
-            </span>
-            <button
-              className="alunos__secundario"
-              disabled={page >= lista.meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Próxima →
-            </button>
-          </div>
-        )}
+        {lista && <Paginacao meta={lista.meta} onPagina={setPage} />}
       </section>
     </Layout>
   )

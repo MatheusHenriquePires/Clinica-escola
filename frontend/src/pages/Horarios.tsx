@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { Aviso } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { api, ApiError } from '../services/api'
-import './Alunos.css'
+import '../styles/cadastro.css'
 import './Horarios.css'
 
 type Status = 'AGENDADO' | 'REALIZADO' | 'CANCELADO' | 'FALTOU'
@@ -174,17 +175,21 @@ export function Horarios() {
 
   return (
     <Layout>
-      <Link to="/" className="alunos__voltar">
+      <Link to="/" className="cad__voltar">
         ← Menu principal
       </Link>
 
-      <div className="alunos__cabecalho">
+      <div className="cad__cabecalho">
         <div>
           <h1>Horários</h1>
-          <p>{ehAdmin ? 'Agenda e disponibilidade dos profissionais.' : 'Sua agenda da semana e seus horários de atendimento.'}</p>
+          <p>
+            {ehAdmin
+              ? 'Agenda e disponibilidade dos profissionais.'
+              : 'Sua agenda da semana e seus horários de atendimento.'}
+          </p>
         </div>
         {ehAdmin && (
-          <label className="alunos__filtro hor__seletor">
+          <label className="cad__filtro hor__seletor">
             Profissional
             <select value={profissionalId} onChange={(e) => setProfissionalId(e.target.value)}>
               {profissionais.length === 0 && <option value="">Nenhum profissional ativo</option>}
@@ -198,17 +203,10 @@ export function Horarios() {
         )}
       </div>
 
-      {aviso && (
-        <p role="status" className="alunos__aviso">
-          {aviso}
-          <button aria-label="Fechar aviso" onClick={() => setAviso('')}>
-            ×
-          </button>
-        </p>
-      )}
+      <Aviso texto={aviso} onFechar={() => setAviso('')} />
 
       {/* ---------- Agenda da semana ---------- */}
-      <section className="alunos__painel hor__secao">
+      <section className="cad__painel hor__secao">
         <div className="hor__secao-topo">
           <div>
             <h2>Agenda da semana</h2>
@@ -218,24 +216,32 @@ export function Horarios() {
             </p>
           </div>
           <div className="hor__navegacao">
-            <button className="alunos__secundario" onClick={() => setSemana(somarDias(semana, -7))} aria-label="Semana anterior">
+            <button
+              className="cad__secundario"
+              onClick={() => setSemana(somarDias(semana, -7))}
+              aria-label="Semana anterior"
+            >
               ‹
             </button>
-            <button className="alunos__secundario" onClick={() => setSemana(inicioDaSemana(new Date()))}>
+            <button className="cad__secundario" onClick={() => setSemana(inicioDaSemana(new Date()))}>
               Hoje
             </button>
-            <button className="alunos__secundario" onClick={() => setSemana(somarDias(semana, 7))} aria-label="Próxima semana">
+            <button
+              className="cad__secundario"
+              onClick={() => setSemana(somarDias(semana, 7))}
+              aria-label="Próxima semana"
+            >
               ›
             </button>
           </div>
         </div>
 
         {erroAgenda ? (
-          <p role="alert" className="alunos__erro">
+          <p role="alert" className="cad__erro">
             {erroAgenda}
           </p>
         ) : !alvo ? (
-          <p className="alunos__vazio">Selecione um profissional.</p>
+          <p className="cad__vazio">Selecione um profissional.</p>
         ) : (
           <div className="hor__semana">
             {dias.map((d) => {
@@ -249,7 +255,11 @@ export function Horarios() {
                   </div>
                   <p className="hor__dia-faixas">
                     {faixasDoDia.length
-                      ? faixasDoDia.map((f) => <span key={f.inicio}>{f.inicio}–{f.fim}</span>)
+                      ? faixasDoDia.map((f) => (
+                          <span key={f.inicio}>
+                            {f.inicio}–{f.fim}
+                          </span>
+                        ))
                       : 'Sem atendimento'}
                   </p>
                   {doDia.length === 0 ? (
@@ -275,19 +285,19 @@ export function Horarios() {
       </section>
 
       {/* ---------- Disponibilidade ---------- */}
-      <section className="alunos__painel hor__secao">
+      <section className="cad__painel hor__secao">
         <div className="hor__secao-topo">
           <div>
             <h2>Horários de atendimento</h2>
             <p>As consultas só podem ser agendadas dentro destas faixas (cada consulta dura 30 minutos).</p>
           </div>
-          <button className="alunos__primario" onClick={salvar} disabled={!alterado || salvando || !alvo}>
+          <button className="cad__primario" onClick={salvar} disabled={!alterado || salvando || !alvo}>
             {salvando ? 'Salvando…' : 'Salvar horários'}
           </button>
         </div>
 
         {erroFaixas && (
-          <p role="alert" className="alunos__erro">
+          <p role="alert" className="cad__erro">
             {erroFaixas}
           </p>
         )}

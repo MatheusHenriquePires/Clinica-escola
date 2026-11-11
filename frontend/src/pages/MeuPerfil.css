@@ -1,0 +1,56 @@
+.perfil__secao {
+  margin-bottom: 1.25rem;
+}
+
+.perfil__secao h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: var(--azul-escuro);
+}
+
+.perfil__conteudo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.perfil__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--azul);
+}
+
+.perfil__lista {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.9rem 1.5rem;
+  margin: 0;
+}
+
+.perfil__item dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cinza);
+}
+
+.perfil__item dd {
+  margin: 0.2rem 0 0;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .perfil__conteudo {
+    flex-direction: column;
+  }
+}

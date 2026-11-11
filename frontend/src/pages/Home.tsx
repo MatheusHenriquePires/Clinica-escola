@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
-import { ProximasConsultas } from '../components/ProximasConsultas'
+import { PainelInicio } from '../components/PainelInicio'
 import { PERMISSOES } from '../routes/permissoes'
 import './Home.css'
 
@@ -54,7 +54,32 @@ const IconeAlunos = () => (
   </svg>
 )
 
+const IconeAgenda = () => (
+  <svg {...icone}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2" />
+  </svg>
+)
+const IconeRelatorios = () => (
+  <svg {...icone}>
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+  </svg>
+)
+const IconeAuditoria = () => (
+  <svg {...icone}>
+    <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+)
+
 const modulos: { to: string; titulo: string; descricao: string; Icone: () => JSX.Element; perfis?: Perfil[] }[] = [
+  {
+    to: '/agenda',
+    titulo: 'Agenda',
+    descricao: 'Grade da semana com consultas e vagas livres para agendar.',
+    Icone: IconeAgenda,
+    perfis: PERMISSOES.agenda.acessar,
+  },
   {
     to: '/pacientes',
     titulo: 'Pacientes',
@@ -97,6 +122,20 @@ const modulos: { to: string; titulo: string; descricao: string; Icone: () => JSX
     Icone: IconeAlunos,
     perfis: PERMISSOES.alunos.acessar,
   },
+  {
+    to: '/relatorios',
+    titulo: 'Relatórios',
+    descricao: 'Produção por especialidade e por aluno, taxa de faltas e exportação.',
+    Icone: IconeRelatorios,
+    perfis: PERMISSOES.relatorios.acessar,
+  },
+  {
+    to: '/auditoria',
+    titulo: 'Auditoria',
+    descricao: 'Quem alterou o quê e quando, com o antes e o depois.',
+    Icone: IconeAuditoria,
+    perfis: PERMISSOES.auditoria.acessar,
+  },
 ]
 
 export function Home() {
@@ -113,9 +152,7 @@ export function Home() {
         <p>O que você deseja fazer hoje?</p>
       </section>
 
-      {(usuario?.perfil === 'PROFISSIONAL' || usuario?.perfil === 'ESTUDANTE') && (
-        <ProximasConsultas mostrarHorarios={usuario.perfil === 'PROFISSIONAL'} />
-      )}
+      {usuario && <PainelInicio perfil={usuario.perfil} />}
 
       <h2 className="home__titulo-secao">Menu principal</h2>
       <nav className="home__grade" aria-label="Menu principal">

@@ -1,10 +1,10 @@
 // Cadastro de aluno = usuário com perfil ESTUDANTE. Somente ADMIN gerencia (RG-05, seção 7 do PDF).
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { authenticate } from '../../middlewares/authenticate.js'
+import { authenticate, revogarSessoes } from '../../middlewares/authenticate.js'
 import { authorize } from '../../middlewares/authorize.js'
 import { AppError } from '../../utils/errors.js'
-import { hashSenha } from '../../utils/password.js'
+import { hashSenha, senhaSchema } from '../../utils/password.js'
 import { paginacaoSchema, paginado, toSkipTake } from '../../utils/pagination.js'
 import { prisma } from '../../utils/prisma.js'
 import { registrarAuditoria } from '../auditoria/service.js'
@@ -40,13 +40,6 @@ const matriculaSchema = z
   .regex(/^[A-Z0-9]{4,20}$/, 'A matrícula deve ter de 4 a 20 letras ou números.')
 
 const cursoSchema = z.enum(CURSOS, { errorMap: () => ({ message: 'Selecione um curso da lista.' }) })
-
-const senhaSchema = z
-  .string()
-  .min(8, 'A senha deve ter ao menos 8 caracteres.')
-  .max(200)
-  .regex(/[A-Za-z]/, 'A senha deve ter ao menos uma letra.')
-  .regex(/\d/, 'A senha deve ter ao menos um número.')
 
 const dadosSchema = z.object({
   nome: nomeSchema,
@@ -147,7 +140,7 @@ export async function alunosRoutes(app: FastifyInstance) {
 
     const senhaHash = await hashSenha(senha)
     await prisma.$transaction(async (tx) => {
-      await tx.usuario.update({ where: { id }, data: { senhaHash } })
+      await tx.usuario.update({ where: { id }, data: { senhaHash, ...revogarSessoes } })
       await registrarAuditoria({ usuarioId: req.user.sub, entidade: 'Aluno', entidadeId: id, acao: 'REDEFINIR_SENHA' }, tx)
     })
     return reply.status(204).send()

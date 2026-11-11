@@ -1,6 +1,6 @@
 // Donos: Andrey / Pedro (front)
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api, EVENTO_SESSAO_EXPIRADA, tokenStore } from '../services/api'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { api, EVENTO_SESSAO_EXPIRADA, ultimaAtividadeEm } from '../services/api'
 
 export type Perfil = 'ADMIN' | 'RECEPCAO' | 'PROFISSIONAL' | 'ESTUDANTE'
 export interface Usuario {
@@ -10,47 +10,58 @@ export interface Usuario {
   perfil: Perfil
 }
 
+interface Sessao {
+  usuario: Usuario
+  /** Timestamp (ms) em que o cookie/token expira. */
+  expiraEm: number | null
+}
+
 interface AuthContextValue {
   usuario: Usuario | null
   carregando: boolean
   /** true quando a sessão acabou por expiração (para avisar na tela de login). */
   sessaoExpirada: boolean
   login: (email: string, senha: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [carregando, setCarregando] = useState(!!tokenStore.get())
-  const [sessaoExpirada, setSessaoExpirada] = useState(false)
+/** Quanto antes de expirar tentamos renovar a sessão. */
+const ANTECEDENCIA_REFRESH = 5 * 60 * 1000
+/** Só renova se o usuário fez alguma requisição neste intervalo; parado, a sessão expira normalmente. */
+const JANELA_ATIVIDADE = 30 * 60 * 1000
+const MAX_TIMEOUT = 2 ** 31 - 1
 
-  const logout = useCallback(() => {
-    tokenStore.clear()
-    setUsuario(null)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [sessao, setSessao] = useState<Sessao | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [sessaoExpirada, setSessaoExpirada] = useState(false)
+  const logado = useRef(false)
+  useEffect(() => {
+    logado.current = !!sessao
+  }, [sessao])
+
+  const logout = useCallback(async () => {
+    setSessao(null)
     setSessaoExpirada(false)
+    await api('/auth/logout', { method: 'POST' }).catch(() => undefined)
   }, [])
 
   const expirar = useCallback(() => {
-    tokenStore.clear()
-    setUsuario(null)
-    setSessaoExpirada(true)
+    // Só avisa "sessão expirada" se havia alguém logado.
+    if (logado.current) setSessaoExpirada(true)
+    setSessao(null)
+    void api('/auth/logout', { method: 'POST' }).catch(() => undefined)
   }, [])
 
-  // Restaura a sessão se já houver token.
+  // Restaura a sessão a partir do cookie (se houver um válido).
   useEffect(() => {
-    if (!tokenStore.get()) return
-    if (!tokenStore.valido()) {
-      expirar()
-      setCarregando(false)
-      return
-    }
-    api<Usuario>('/auth/me')
-      .then(setUsuario)
-      .catch(() => tokenStore.clear()) // 401 já dispara o evento de expiração na camada HTTP
+    api<Usuario & { expiraEm: number | null }>('/auth/me')
+      .then(({ expiraEm, ...usuario }) => setSessao({ usuario, expiraEm }))
+      .catch(() => setSessao(null))
       .finally(() => setCarregando(false))
-  }, [expirar])
+  }, [])
 
   // 401 vindo da API: token expirado/revogado.
   useEffect(() => {
@@ -58,27 +69,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(EVENTO_SESSAO_EXPIRADA, expirar)
   }, [expirar])
 
-  // Derruba a sessão no instante em que o token vence, sem esperar a próxima requisição.
+  // Pouco antes de vencer: renova se o usuário está em uso; senão derruba no instante em que vence.
+  const expiraEm = sessao?.expiraEm ?? null
   useEffect(() => {
-    if (!usuario) return
-    const exp = tokenStore.expiraEm()
-    if (exp === null) return
-    const t = setTimeout(expirar, Math.min(Math.max(exp - Date.now(), 0), 2 ** 31 - 1))
-    return () => clearTimeout(t)
-  }, [usuario, expirar])
+    if (expiraEm === null) return
+    let timer: ReturnType<typeof setTimeout>
+    const agendar = (quando: number, fn: () => void) => {
+      timer = setTimeout(fn, Math.min(Math.max(quando - Date.now(), 0), MAX_TIMEOUT))
+    }
+    agendar(expiraEm - ANTECEDENCIA_REFRESH, () => {
+      if (Date.now() - ultimaAtividadeEm() > JANELA_ATIVIDADE) {
+        agendar(expiraEm, expirar)
+        return
+      }
+      api<Sessao>('/auth/refresh', { method: 'POST' })
+        .then(setSessao)
+        .catch(() => agendar(expiraEm, expirar))
+    })
+    return () => clearTimeout(timer)
+  }, [expiraEm, expirar])
 
   const login = async (email: string, senha: string) => {
-    const res = await api<{ token: string; usuario: Usuario }>('/auth/login', {
+    const res = await api<Sessao>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, senha }),
     })
-    tokenStore.set(res.token)
     setSessaoExpirada(false)
-    setUsuario(res.usuario)
+    setSessao(res)
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, carregando, sessaoExpirada, login, logout }}>
+    <AuthContext.Provider value={{ usuario: sessao?.usuario ?? null, carregando, sessaoExpirada, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

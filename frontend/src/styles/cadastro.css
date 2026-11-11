@@ -1,0 +1,562 @@
+/* Estilo compartilhado das telas de cadastro (listas, filtros, modais e formulários). Prefixo: cad__ */
+.cad__voltar {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--azul);
+  text-decoration: none;
+}
+
+.cad__voltar:hover {
+  color: var(--vermelho);
+}
+
+.cad__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.cad__cabecalho h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  color: var(--azul-escuro);
+}
+
+.cad__cabecalho p {
+  margin: 0.2rem 0 0;
+  color: var(--cinza);
+}
+
+/* Botões */
+.cad__primario,
+.cad__secundario,
+.cad__perigo {
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+/* Links (<a>) com aparência de botão */
+a.cad__primario,
+a.cad__secundario {
+  display: inline-block;
+  text-decoration: none;
+  line-height: normal;
+}
+
+.cad__primario {
+  color: #fff;
+  background: var(--azul);
+  border: 0;
+  border-bottom: 3px solid var(--amarelo);
+}
+
+.cad__primario:hover {
+  background: var(--azul-escuro);
+}
+
+.cad__secundario {
+  color: var(--azul);
+  background: #fff;
+  border: 1.5px solid var(--borda);
+}
+
+.cad__secundario:hover:not(:disabled) {
+  border-color: var(--azul);
+}
+
+.cad__perigo {
+  color: #fff;
+  background: var(--vermelho);
+  border: 0;
+}
+
+.cad__primario:disabled,
+.cad__secundario:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Aviso de resultado */
+.cad__aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  color: #14532d;
+  background: #e8f7ee;
+  border: 1px solid #b7e4c7;
+  border-left: 4px solid #2f9e5b;
+  border-radius: 10px;
+}
+
+.cad__aviso button {
+  font-size: 1.3rem;
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Modal */
+.cad__fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow-y: auto;
+  background: rgba(15, 47, 107, 0.55);
+  backdrop-filter: blur(2px);
+  animation: alunos-fundo 0.15s ease-out;
+}
+
+.cad__modal {
+  width: 100%;
+  max-width: 640px;
+  margin: auto;
+  animation: alunos-modal 0.18s ease-out;
+}
+
+.cad__modal-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cad__modal-topo h2 {
+  margin: 0;
+}
+
+.cad__fechar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--cinza);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cad__fechar:hover {
+  color: var(--vermelho);
+  background: #fdecec;
+}
+
+@keyframes alunos-fundo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes alunos-modal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad__fundo,
+  .cad__modal {
+    animation: none;
+  }
+}
+
+/* Formulário */
+.cad__form {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-top: 4px solid var(--vermelho);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(15, 47, 107, 0.06);
+}
+
+.cad__form h2 {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  color: var(--azul-escuro);
+}
+
+.cad__linha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.cad__campo {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.cad__campo input,
+.cad__campo select,
+.cad__campo textarea,
+.cad__busca input {
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-weight: 400;
+  color: var(--texto);
+  background: #f6f8fc;
+  border: 1.5px solid var(--borda);
+  border-radius: 10px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
+.cad__campo input:focus,
+.cad__campo select:focus,
+.cad__campo textarea:focus,
+.cad__busca input:focus {
+  background: #fff;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 4px rgba(27, 74, 156, 0.16);
+}
+
+.cad__campo input.cad__invalido,
+.cad__campo select.cad__invalido,
+.cad__campo textarea.cad__invalido {
+  border-color: var(--vermelho);
+  background: #fff8f8;
+}
+
+.cad__erro-campo {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #b4232b;
+}
+
+.cad__ver-senha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--cinza);
+  cursor: pointer;
+}
+
+.cad__botoes {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.cad__pendente {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--vermelho);
+}
+
+.cad__dica {
+  margin: 0.9rem 0 0;
+  font-size: 0.82rem;
+  color: var(--cinza);
+}
+
+.cad__erro {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+  color: #9b1c22;
+  background: #fdecec;
+  border: 1px solid #f4c3c5;
+  border-left: 4px solid var(--vermelho);
+  border-radius: 10px;
+}
+
+.cad__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* Listagem */
+.cad__painel {
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(15, 47, 107, 0.06);
+}
+
+.cad__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cad__abas {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: #eef2f9;
+  border-radius: 10px;
+}
+
+.cad__aba {
+  padding: 0.45rem 1rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cinza);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cad__aba--ativa {
+  color: #fff;
+  background: var(--azul);
+}
+
+.cad__busca {
+  display: flex;
+  flex: 1 1 260px;
+  max-width: 420px;
+  gap: 0.5rem;
+}
+
+.cad__busca input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cad__tabela-wrap {
+  overflow-x: auto;
+}
+
+.cad__tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.cad__tabela th {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--cinza);
+  border-bottom: 2px solid var(--amarelo);
+}
+
+.cad__tabela td {
+  padding: 0.8rem 0.75rem;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.cad__tabela tbody tr:hover {
+  background: #f6f9ff;
+}
+
+.cad__celula-acao {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cad__confirma {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--azul-escuro);
+}
+
+.cad__vazio {
+  padding: 2rem 1rem;
+  margin: 0;
+  text-align: center;
+  color: var(--cinza);
+}
+
+.cad__paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  color: var(--cinza);
+}
+
+/* Selects e datas padronizados (formulários e filtros) */
+.cad__campo select,
+.cad__campo textarea,
+.cad__filtro select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.4rem;
+  cursor: pointer;
+  background-color: #f6f8fc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231b4a9c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+}
+
+.cad__filtros-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.cad__filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cinza);
+}
+
+.cad__filtro select,
+.cad__filtro input {
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--texto);
+  background-color: #f6f8fc;
+  border: 1.5px solid var(--borda);
+  border-radius: 10px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
+}
+
+.cad__filtro select:hover,
+.cad__filtro input:hover {
+  border-color: #aebbd6;
+}
+
+.cad__filtro select:focus,
+.cad__filtro input:focus {
+  background-color: #fff;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 4px rgba(27, 74, 156, 0.16);
+}
+
+/* Especialidades do profissional */
+.prof__especialidades {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.prof__especialidades legend {
+  margin-bottom: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.prof__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.prof__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--texto);
+  background: #f6f8fc;
+  border: 1.5px solid var(--borda);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.prof__chip input {
+  accent-color: var(--azul);
+}
+
+.prof__chip--on {
+  color: var(--azul-escuro, #0f2f6b);
+  background: #e8eefb;
+  border-color: var(--azul);
+}
+
+.prof__especialidades[aria-invalid='true'] .prof__chip {
+  border-color: var(--vermelho);
+}
+
+.prof__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.prof__tag {
+  padding: 0.15rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--azul);
+  background: #e8eefb;
+  border-radius: 999px;
+}
+
+.prof__tag--inativa {
+  color: var(--cinza);
+  background: #eef0f4;
+  text-decoration: line-through;
+}
+
+.cad__campo textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.cad__campo--largo {
+  grid-column: 1 / -1;
+}

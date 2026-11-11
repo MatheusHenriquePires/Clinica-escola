@@ -2,11 +2,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { AbasAtivos, Aviso, Paginacao, TopoModal, useModal } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { podeEditar } from '../routes/permissoes'
 import { api, ApiError } from '../services/api'
 import { cpfValido, mascararCpf, mascararTelefone, soDigitos } from '../utils/cpf'
-import './Pacientes.css'
+import '../styles/cadastro.css'
 
 interface Paciente {
   id: string
@@ -19,7 +20,12 @@ interface Paciente {
   contatoResponsavel: string | null
   observacoes: string | null
   ativo: boolean
+  /** O back ocultou contato e endereço (estudante sem atendimento com o paciente). */
+  restrito?: boolean
 }
+
+// CPF já mascarado pelo back (***.982.247-**) é exibido como veio.
+const exibirCpf = (cpf: string) => (cpf.includes('*') ? cpf : mascararCpf(cpf))
 
 interface Lista {
   data: Paciente[]
@@ -83,20 +89,8 @@ export function Pacientes() {
     void carregar()
   }, [carregar])
 
-  // Modal: Esc fecha e a página de fundo não rola enquanto ele está aberto.
-  useEffect(() => {
-    if (!painel) return
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !salvando) setPainel(null)
-    }
-    document.addEventListener('keydown', aoTeclar)
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', aoTeclar)
-      document.body.style.overflow = overflow
-    }
-  }, [painel, salvando])
+  // Modal: Esc fecha (exceto durante o salvamento) e a página de fundo não rola.
+  useModal(!!painel, () => !salvando && setPainel(null))
 
   const abrir = (p: Exclude<Painel, null>) => {
     setForm(
@@ -210,7 +204,7 @@ export function Pacientes() {
     props: { type?: string; maxLength?: number; autoFocus?: boolean; inputMode?: 'numeric' | 'tel'; max?: string },
     transformar: (v: string) => string = (v) => v,
   ) => (
-    <label className="pacientes__campo">
+    <label className="cad__campo">
       {rotulo}
       <input
         {...props}
@@ -218,14 +212,14 @@ export function Pacientes() {
         value={form[nome]}
         onChange={(e) => setForm({ ...form, [nome]: transformar(e.target.value) })}
         aria-invalid={!!errosCampo[nome]}
-        className={errosCampo[nome] ? 'pacientes__invalido' : undefined}
+        className={errosCampo[nome] ? 'cad__invalido' : undefined}
       />
-      {errosCampo[nome] && <span className="pacientes__erro-campo">{errosCampo[nome]}</span>}
+      {errosCampo[nome] && <span className="cad__erro-campo">{errosCampo[nome]}</span>}
     </label>
   )
 
   const areaTexto = (nome: Campo, rotulo: string) => (
-    <label className="pacientes__campo pacientes__campo--largo">
+    <label className="cad__campo cad__campo--largo">
       {rotulo}
       <textarea
         rows={2}
@@ -233,58 +227,48 @@ export function Pacientes() {
         value={form[nome]}
         onChange={(e) => setForm({ ...form, [nome]: e.target.value })}
         aria-invalid={!!errosCampo[nome]}
-        className={errosCampo[nome] ? 'pacientes__invalido' : undefined}
+        className={errosCampo[nome] ? 'cad__invalido' : undefined}
       />
-      {errosCampo[nome] && <span className="pacientes__erro-campo">{errosCampo[nome]}</span>}
+      {errosCampo[nome] && <span className="cad__erro-campo">{errosCampo[nome]}</span>}
     </label>
   )
 
   return (
     <Layout>
-      <Link to="/" className="pacientes__voltar">
+      <Link to="/" className="cad__voltar">
         ← Menu principal
       </Link>
 
-      <div className="pacientes__cabecalho">
+      <div className="cad__cabecalho">
         <div>
           <h1>Pacientes</h1>
           <p>Cadastro e consulta dos pacientes da clínica.</p>
         </div>
         {editavel && (
-          <button className="pacientes__primario" onClick={() => abrir({ tipo: 'novo' })}>
+          <button className="cad__primario" onClick={() => abrir({ tipo: 'novo' })}>
             + Novo paciente
           </button>
         )}
       </div>
 
-      {aviso && (
-        <p role="status" className="pacientes__aviso">
-          {aviso}
-          <button aria-label="Fechar aviso" onClick={() => setAviso('')}>
-            ×
-          </button>
-        </p>
-      )}
+      <Aviso texto={aviso} onFechar={() => setAviso('')} />
 
       {painel && (
-        <div className="pacientes__fundo">
+        <div className="cad__fundo">
           <form
-            className="pacientes__form pacientes__modal"
+            className="cad__form cad__modal"
             onSubmit={salvar}
             noValidate
             role="dialog"
             aria-modal="true"
             aria-labelledby="pacientes-modal-titulo"
           >
-            <div className="pacientes__modal-topo">
-              <h2 id="pacientes-modal-titulo">
-                {painel.tipo === 'novo' ? 'Cadastrar paciente' : `Editar paciente · ${painel.paciente.nome}`}
-              </h2>
-              <button type="button" className="pacientes__fechar" aria-label="Fechar" onClick={() => setPainel(null)}>
-                ×
-              </button>
-            </div>
-            <div className="pacientes__linha">
+            <TopoModal
+              id="pacientes-modal-titulo"
+              titulo={painel.tipo === 'novo' ? 'Cadastrar paciente' : `Editar paciente · ${painel.paciente.nome}`}
+              onFechar={() => setPainel(null)}
+            />
+            <div className="cad__linha">
               {campo('nome', 'Nome completo', { type: 'text', maxLength: 120, autoFocus: true })}
               {campo('dataNascimento', 'Data de nascimento', { type: 'date', max: hoje() })}
               {campo('cpf', 'CPF (opcional)', { type: 'text', inputMode: 'numeric', maxLength: 14 }, mascararCpf)}
@@ -295,15 +279,15 @@ export function Pacientes() {
               {areaTexto('observacoes', 'Observações')}
             </div>
             {erroForm && (
-              <p role="alert" className="pacientes__erro">
+              <p role="alert" className="cad__erro">
                 {erroForm}
               </p>
             )}
-            <div className="pacientes__acoes">
-              <button type="button" className="pacientes__secundario" onClick={() => setPainel(null)}>
+            <div className="cad__acoes">
+              <button type="button" className="cad__secundario" onClick={() => setPainel(null)}>
                 Cancelar
               </button>
-              <button type="submit" className="pacientes__primario" disabled={salvando}>
+              <button type="submit" className="cad__primario" disabled={salvando}>
                 {salvando ? 'Salvando…' : 'Salvar'}
               </button>
             </div>
@@ -311,45 +295,36 @@ export function Pacientes() {
         </div>
       )}
 
-      <section className="pacientes__painel">
-        <div className="pacientes__filtros">
-          <div className="pacientes__abas" role="tablist">
-            {[true, false].map((v) => (
-              <button
-                key={String(v)}
-                role="tab"
-                aria-selected={ativos === v}
-                className={ativos === v ? 'pacientes__aba pacientes__aba--ativa' : 'pacientes__aba'}
-                onClick={() => {
-                  setAtivos(v)
-                  setPage(1)
-                }}
-              >
-                {v ? 'Ativos' : 'Inativos'}
-              </button>
-            ))}
-          </div>
-          <form className="pacientes__busca" onSubmit={buscar}>
+      <section className="cad__painel">
+        <div className="cad__filtros">
+          <AbasAtivos
+            ativos={ativos}
+            onMudar={(v) => {
+              setAtivos(v)
+              setPage(1)
+            }}
+          />
+          <form className="cad__busca" onSubmit={buscar}>
             <input
               type="search"
               placeholder="Buscar por nome"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
             />
-            <button type="submit" className="pacientes__secundario">
+            <button type="submit" className="cad__secundario">
               Buscar
             </button>
           </form>
         </div>
 
         {falhaLista ? (
-          <p role="alert" className="pacientes__erro">
+          <p role="alert" className="cad__erro">
             {falhaLista}
           </p>
         ) : !lista ? (
-          <p className="pacientes__vazio">Carregando…</p>
+          <p className="cad__vazio">Carregando…</p>
         ) : lista.data.length === 0 ? (
-          <p className="pacientes__vazio">
+          <p className="cad__vazio">
             {termo
               ? 'Nenhum paciente encontrado para esta busca.'
               : ativos
@@ -357,55 +332,68 @@ export function Pacientes() {
                 : 'Nenhum paciente inativo.'}
           </p>
         ) : (
-          <div className="pacientes__tabela-wrap">
-            <table className="pacientes__tabela">
+          <div className="cad__tabela-wrap">
+            <table className="cad__tabela">
               <thead>
                 <tr>
                   <th>Nome</th>
                   <th>CPF</th>
                   <th>Nascimento</th>
                   <th>Telefone</th>
-                  {editavel && <th aria-label="Ações" />}
+                  <th aria-label="Ações" />
                 </tr>
               </thead>
               <tbody>
                 {lista.data.map((p) => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
-                    <td>{p.cpf ? mascararCpf(p.cpf) : <span className="pacientes__pendente">Não informado</span>}</td>
+                    <td>{p.cpf ? exibirCpf(p.cpf) : <span className="cad__pendente">Não informado</span>}</td>
                     <td>{formatarData(p.dataNascimento)}</td>
                     <td>
-                      {p.telefone ? mascararTelefone(p.telefone) : <span className="pacientes__pendente">—</span>}
+                      {p.telefone ? (
+                        mascararTelefone(p.telefone)
+                      ) : (
+                        <span className="cad__pendente">{p.restrito ? 'Restrito' : '—'}</span>
+                      )}
                     </td>
-                    {editavel && (
-                      <td className="pacientes__celula-acao">
-                        {confirmando === p.id ? (
-                          <span className="pacientes__confirma">
-                            Inativar este paciente?
-                            <button className="pacientes__perigo" onClick={() => inativar(p)}>
-                              Confirmar
-                            </button>
-                            <button className="pacientes__secundario" onClick={() => setConfirmando(null)}>
-                              Cancelar
-                            </button>
-                          </span>
-                        ) : (
-                          p.ativo && (
-                            <span className="pacientes__botoes">
+                    <td className="cad__celula-acao">
+                      {!editavel ? (
+                        <span className="cad__botoes">
+                          <Link className="cad__secundario" to={`/pacientes/${p.id}`}>
+                            Histórico
+                          </Link>
+                        </span>
+                      ) : confirmando === p.id ? (
+                        <span className="cad__confirma">
+                          Inativar este paciente?
+                          <button className="cad__perigo" onClick={() => inativar(p)}>
+                            Confirmar
+                          </button>
+                          <button className="cad__secundario" onClick={() => setConfirmando(null)}>
+                            Cancelar
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="cad__botoes">
+                          <Link className="cad__secundario" to={`/pacientes/${p.id}`}>
+                            Histórico
+                          </Link>
+                          {p.ativo && (
+                            <>
                               <button
-                                className="pacientes__secundario"
+                                className="cad__secundario"
                                 onClick={() => abrir({ tipo: 'editar', paciente: p })}
                               >
                                 Editar
                               </button>
-                              <button className="pacientes__secundario" onClick={() => setConfirmando(p.id)}>
+                              <button className="cad__secundario" onClick={() => setConfirmando(p.id)}>
                                 Inativar
                               </button>
-                            </span>
-                          )
-                        )}
-                      </td>
-                    )}
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -413,23 +401,7 @@ export function Pacientes() {
           </div>
         )}
 
-        {lista && lista.meta.totalPages > 1 && (
-          <div className="pacientes__paginacao">
-            <button className="pacientes__secundario" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              ← Anterior
-            </button>
-            <span>
-              Página {lista.meta.page} de {lista.meta.totalPages}
-            </span>
-            <button
-              className="pacientes__secundario"
-              disabled={page >= lista.meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Próxima →
-            </button>
-          </div>
-        )}
+        {lista && <Paginacao meta={lista.meta} onPagina={setPage} />}
       </section>
     </Layout>
   )

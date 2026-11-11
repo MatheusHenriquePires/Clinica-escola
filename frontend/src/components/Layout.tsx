@@ -1,5 +1,6 @@
 // Donos: Andrey / Pedro (front)
 import { useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
 import { MenuLateral } from './MenuLateral'
 import '../pages/Home.css'
@@ -49,7 +50,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <div className="home__principal">
         <header className="home__topo">
-          <div className="home__usuario">
+          <Link to="/meu-perfil" className="home__usuario" title="Meu perfil">
             <div className="home__dados">
               <strong>{nome}</strong>
               <span>{usuario ? perfis[usuario.perfil] : ''}</span>
@@ -57,7 +58,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="home__avatar" aria-hidden="true">
               {nome.charAt(0).toUpperCase()}
             </span>
-          </div>
+          </Link>
         </header>
 
         <main className="home__conteudo">{children}</main>

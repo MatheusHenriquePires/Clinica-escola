@@ -60,6 +60,17 @@ const itens = [
     ),
   },
   {
+    to: '/agenda',
+    rotulo: 'Agenda',
+    modulo: 'agenda',
+    icone: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2" />
+      </>
+    ),
+  },
+  {
     to: '/horarios',
     rotulo: 'Horários',
     modulo: 'horarios',
@@ -78,6 +89,35 @@ const itens = [
       <>
         <path d="m2 9 10-5 10 5-10 5z" />
         <path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5M22 9v6" />
+      </>
+    ),
+  },
+  {
+    to: '/usuarios',
+    rotulo: 'Usuários',
+    modulo: 'usuarios',
+    icone: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+        <path d="m17 3 1.5 1.5L21 2" />
+      </>
+    ),
+  },
+  {
+    to: '/relatorios',
+    rotulo: 'Relatórios',
+    modulo: 'relatorios',
+    icone: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  },
+  {
+    to: '/auditoria',
+    rotulo: 'Auditoria',
+    modulo: 'auditoria',
+    icone: (
+      <>
+        <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" />
+        <path d="m9 12 2 2 4-4" />
       </>
     ),
   },
@@ -137,7 +177,26 @@ export function MenuLateral({ aberto, onAlternar }: { aberto: boolean; onAlterna
       {modulos.length > 0 && <div className="menu__lista menu__lista--modulos">{modulos.map(link)}</div>}
 
       <div className="menu__rodape">
-        <button type="button" className="menu__sair" onClick={logout} title={aberto ? undefined : 'Sair'} aria-label="Sair">
+        <NavLink
+          to="/meu-perfil"
+          title={aberto ? undefined : 'Meu perfil'}
+          aria-label={aberto ? undefined : 'Meu perfil'}
+          className={({ isActive }) => (isActive ? 'menu__link ativo' : 'menu__link')}
+        >
+          <svg {...icone}>
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="10" r="3" />
+            <path d="M6.5 18.5a6 6 0 0 1 11 0" />
+          </svg>
+          <span className="menu__rotulo">Meu perfil</span>
+        </NavLink>
+        <button
+          type="button"
+          className="menu__sair"
+          onClick={logout}
+          title={aberto ? undefined : 'Sair'}
+          aria-label="Sair"
+        >
           <svg {...icone}>
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
           </svg>

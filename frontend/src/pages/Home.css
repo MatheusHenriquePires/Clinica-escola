@@ -69,6 +69,15 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.home__usuario:hover,
+.home__usuario:focus-visible {
+  background: #f1f4fa;
 }
 
 .home__avatar {

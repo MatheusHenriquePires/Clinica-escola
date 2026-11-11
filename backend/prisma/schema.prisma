@@ -33,9 +33,12 @@ model Usuario {
   perfil    Perfil
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
+  // Incrementada ao inativar, trocar perfil ou senha: tokens com versão antiga deixam de valer na hora.
+  versaoSessao Int @default(0)
 
-  atendimentosResponsavel Atendimento[] @relation("AtendimentoResponsavel")
-  atendimentosCriados     Atendimento[] @relation("AtendimentoCriadoPor")
+  atendimentosResponsavel     Atendimento[] @relation("AtendimentoResponsavel")
+  atendimentosCriados         Atendimento[] @relation("AtendimentoCriadoPor")
+  atendimentosSupervisionados Atendimento[] @relation("AtendimentoSupervisor")
   auditorias              Auditoria[]
 
   // Especialidades em que o profissional (perfil PROFISSIONAL) atua; vazio nos demais perfis.
@@ -80,6 +83,8 @@ model Atendimento {
   pacienteId      String
   especialidadeId String
   responsavelId   String
+  // Profissional que supervisiona e valida o atendimento feito por estudante.
+  supervisorId    String?
   dataHora        DateTime
   descricao       String?
   conduta         String?
@@ -92,9 +97,11 @@ model Atendimento {
   especialidade Especialidade @relation(fields: [especialidadeId], references: [id])
   responsavel   Usuario       @relation("AtendimentoResponsavel", fields: [responsavelId], references: [id])
   criadoPor     Usuario       @relation("AtendimentoCriadoPor", fields: [createdBy], references: [id])
+  supervisor    Usuario?      @relation("AtendimentoSupervisor", fields: [supervisorId], references: [id])
 
   @@index([pacienteId, dataHora])
   @@index([responsavelId, dataHora])
+  @@index([supervisorId, finalizado])
 }
 
 model Auditoria {

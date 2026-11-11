@@ -1,0 +1,119 @@
+@import './MeuPerfil.css';
+
+.hist__dados {
+  margin-bottom: 1.25rem;
+}
+
+.hist__topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hist__topo h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  color: var(--azul-escuro);
+}
+
+.hist__total {
+  font-size: 0.85rem;
+  color: var(--cinza);
+}
+
+.hist__linha {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0 0 0 1.25rem;
+  border-left: 2px solid var(--borda);
+}
+
+.hist__item {
+  position: relative;
+  padding: 0.25rem 0 1.25rem 0.75rem;
+}
+
+.hist__item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.25rem - 7px);
+  top: 0.45rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--azul);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--borda);
+}
+
+.hist__item--faltou::before {
+  background: var(--vermelho);
+}
+.hist__item--cancelado::before {
+  background: var(--cinza);
+}
+.hist__item--agendado::before {
+  background: var(--amarelo);
+}
+
+.hist__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hist__cabeca time {
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.hist__status,
+.hist__selo {
+  padding: 0.1rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #e8eef9;
+  color: var(--azul);
+}
+
+.hist__status--faltou {
+  background: #fdecec;
+  color: var(--vermelho);
+}
+.hist__status--cancelado {
+  background: #eef0f4;
+  color: var(--cinza);
+}
+.hist__status--agendado {
+  background: #fff6db;
+  color: #8a6400;
+}
+
+.hist__selo {
+  background: #e6f4ea;
+  color: #1e6b36;
+}
+
+.hist__meta {
+  margin: 0.35rem 0 0;
+  color: var(--cinza);
+  font-size: 0.9rem;
+}
+
+.hist__texto {
+  margin: 0.5rem 0 0;
+  white-space: pre-wrap;
+  color: var(--texto);
+}
+
+.hist__texto span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cinza);
+}

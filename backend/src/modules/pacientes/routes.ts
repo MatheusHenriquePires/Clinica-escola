@@ -73,6 +73,26 @@ const corpoSchema = z.object({
 })
 const idSchema = z.object({ id: z.string().uuid() })
 
+/** "52998224725" -> "***.982.247-**": identifica sem expor o documento inteiro. */
+export const mascararCpf = (cpf: string | null) => (cpf ? `***.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-**` : null)
+
+/**
+ * LGPD (minimização): o estudante recebe só o necessário para escolher o paciente.
+ * Contato, endereço e observações ficam ocultos; `restrito` avisa o front.
+ */
+export function dadosMinimos<T extends { cpf: string | null }>(p: T) {
+  return {
+    ...p,
+    cpf: mascararCpf(p.cpf),
+    telefone: null,
+    email: null,
+    endereco: null,
+    contatoResponsavel: null,
+    observacoes: null,
+    restrito: true,
+  }
+}
+
 async function buscar(id: string) {
   const p = await prisma.paciente.findUnique({ where: { id } })
   if (!p) throw new AppError(404, 'Paciente não encontrado.', 'NAO_ENCONTRADO')
@@ -104,13 +124,15 @@ export async function pacientesRoutes(app: FastifyInstance) {
 
   app.get('/', { preHandler: [todos] }, async (req) => {
     const { busca, ativo, ...pag } = listaSchema.parse(req.query)
+    const restrito = req.user.perfil === 'ESTUDANTE'
     const digitos = busca ? soDigitos(busca) : ''
     const where: Prisma.PacienteWhereInput = {
       ativo,
       ...(busca && {
         OR: [
           { nome: { contains: busca, mode: 'insensitive' } },
-          ...(digitos.length >= 3 ? [{ cpf: { contains: digitos } }] : []),
+          // Estudante não busca por CPF (evitaria descobrir o documento por tentativa).
+          ...(!restrito && digitos.length >= 3 ? [{ cpf: { contains: digitos } }] : []),
         ],
       }),
     }
@@ -118,10 +140,19 @@ export async function pacientesRoutes(app: FastifyInstance) {
       prisma.paciente.findMany({ where, orderBy: { nome: 'asc' }, ...toSkipTake(pag) }),
       prisma.paciente.count({ where }),
     ])
-    return paginado(data, total, pag)
+    return paginado(restrito ? data.map(dadosMinimos) : data, total, pag)
   })
 
-  app.get('/:id', { preHandler: [todos] }, async (req) => buscar(idSchema.parse(req.params).id))
+  // Estudante vê os dados completos só dos pacientes que ele já atendeu (ou tem consulta marcada).
+  app.get('/:id', { preHandler: [todos] }, async (req) => {
+    const p = await buscar(idSchema.parse(req.params).id)
+    if (req.user.perfil !== 'ESTUDANTE') return p
+    const atendeu = await prisma.atendimento.findFirst({
+      where: { pacienteId: p.id, responsavelId: req.user.sub },
+      select: { id: true },
+    })
+    return atendeu ? p : dadosMinimos(p)
+  })
 
   app.post('/', { preHandler: [gestao] }, async (req, reply) => {
     const dados = corpoSchema.parse(req.body)

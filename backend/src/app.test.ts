@@ -1,4 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+// Testes unitários não usam banco: o authenticate enxerga todo token como de um usuário ativo, versão 0.
+// Os testes com banco real ficam em src/integracao.integracao.test.ts (npm run test:integracao).
+vi.mock('./utils/prisma.js', () => ({
+  prisma: { usuario: { findUnique: async () => ({ ativo: true, versaoSessao: 0 }) } },
+}))
 
 process.env.NODE_ENV = 'test'
 process.env.DATABASE_URL ??= 'postgresql://x:x@localhost:5432/x'
@@ -54,6 +60,87 @@ describe('app', () => {
       payload: {},
     })
     expect(res.statusCode).toBe(403)
+  })
+})
+
+describe('sessão, usuários e auditoria', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>
+  beforeAll(async () => {
+    app = await buildApp()
+  })
+  afterAll(() => app.close())
+
+  const ADMIN_ID = '00000000-0000-4000-8000-000000000001'
+  const bearer = (perfil: 'ADMIN' | 'RECEPCAO' | 'ESTUDANTE', sub = ADMIN_ID) => ({
+    authorization: `Bearer ${app.jwt.sign({ sub, perfil })}`,
+  })
+
+  it('aceita o token pelo cookie de sessão', async () => {
+    const token = app.jwt.sign({ sub: 'u1', perfil: 'ESTUDANTE' })
+    const res = await app.inject({ method: 'GET', url: '/auditoria', cookies: { clinica_sessao: token } })
+    expect(res.statusCode).toBe(403) // autenticou pelo cookie; barrado só pelo perfil
+  })
+
+  it('logout apaga o cookie httpOnly', async () => {
+    const res = await app.inject({ method: 'POST', url: '/auth/logout' })
+    expect(res.statusCode).toBe(204)
+    const cookie = String(res.headers['set-cookie'])
+    expect(cookie).toContain('clinica_sessao=;')
+    expect(cookie).toContain('HttpOnly')
+    expect(cookie).toContain('SameSite=Strict')
+  })
+
+  it('refresh e trocar senha exigem sessão', async () => {
+    for (const url of ['/auth/refresh', '/auth/trocar-senha']) {
+      const res = await app.inject({ method: 'POST', url, payload: {} })
+      expect(res.statusCode).toBe(401)
+    }
+  })
+
+  it('trocar senha valida a força e exige senha diferente', async () => {
+    const fraca = await app.inject({
+      method: 'POST',
+      url: '/auth/trocar-senha',
+      headers: bearer('RECEPCAO'),
+      payload: { senhaAtual: 'Antiga123', novaSenha: 'curta' },
+    })
+    expect(fraca.statusCode).toBe(400)
+    expect(fraca.json().detalhes).toContainEqual(expect.objectContaining({ campo: 'novaSenha' }))
+
+    const igual = await app.inject({
+      method: 'POST',
+      url: '/auth/trocar-senha',
+      headers: bearer('RECEPCAO'),
+      payload: { senhaAtual: 'Igual1234', novaSenha: 'Igual1234' },
+    })
+    expect(igual.statusCode).toBe(400)
+  })
+
+  it('só ADMIN gerencia usuários', async () => {
+    const res = await app.inject({ method: 'GET', url: '/usuarios', headers: bearer('RECEPCAO') })
+    expect(res.statusCode).toBe(403)
+  })
+
+  it('admin não pode inativar a própria conta', async () => {
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/usuarios/${ADMIN_ID}/inativar`,
+      headers: bearer('ADMIN'),
+    })
+    expect(res.statusCode).toBe(422)
+  })
+
+  it('auditoria rejeita período invertido e usuário inválido', async () => {
+    const periodo = await app.inject({
+      method: 'GET',
+      url: '/auditoria?de=2026-11-10&ate=2026-11-01',
+      headers: bearer('ADMIN'),
+    })
+    expect(periodo.statusCode).toBe(400)
+    expect(periodo.json().detalhes).toContainEqual(expect.objectContaining({ campo: 'ate' }))
+
+    const usuario = await app.inject({ method: 'GET', url: '/auditoria?usuarioId=abc', headers: bearer('ADMIN') })
+    expect(usuario.statusCode).toBe(400)
   })
 })
 

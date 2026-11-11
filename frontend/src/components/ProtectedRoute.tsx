@@ -2,11 +2,10 @@
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth, type Perfil } from '../contexts/AuthContext'
-import { tokenStore } from '../services/api'
 import { Layout } from './Layout'
 
 /**
- * Exige login com token ainda válido e, opcionalmente, um dos perfis informados.
+ * Exige login (sessão restaurada do cookie ou feita agora) e, opcionalmente, um dos perfis informados.
  * Sem sessão: vai para /login guardando a rota de origem para voltar depois.
  */
 export function ProtectedRoute({ perfis, children }: { perfis?: Perfil[]; children: ReactNode }) {
@@ -14,7 +13,7 @@ export function ProtectedRoute({ perfis, children }: { perfis?: Perfil[]; childr
   const local = useLocation()
 
   if (carregando) return <p style={{ padding: 24 }}>Carregando...</p>
-  if (!usuario || !tokenStore.valido()) return <Navigate to="/login" replace state={{ de: local.pathname }} />
+  if (!usuario) return <Navigate to="/login" replace state={{ de: local.pathname }} />
   if (perfis && !perfis.includes(usuario.perfil)) {
     return (
       <Layout>

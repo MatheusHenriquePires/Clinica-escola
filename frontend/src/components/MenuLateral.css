@@ -190,6 +190,9 @@
 
 /* Rodapé: Sair */
 .menu__rodape {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   margin-top: auto;
   padding: 1rem 0.75rem;
   border-top: 1px solid var(--menu-linha);

@@ -1,0 +1,101 @@
+.rel__periodo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.rel__periodo .cad__filtro {
+  min-width: 160px;
+}
+
+.rel__atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.rel__numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.rel__numero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(15, 47, 107, 0.06);
+}
+
+.rel__numero strong {
+  font-size: 1.7rem;
+  line-height: 1.1;
+  color: var(--azul-escuro);
+  font-variant-numeric: tabular-nums;
+}
+
+.rel__numero span {
+  font-size: 0.85rem;
+  color: var(--cinza);
+}
+
+.rel__secao {
+  margin-bottom: 1.25rem;
+}
+
+.rel__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.rel__topo h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--azul-escuro);
+}
+
+.rel__tabela td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barra discreta atrás do percentual de faltas. */
+.rel__barra {
+  display: inline-block;
+  min-width: 4.5rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(200, 30, 30, 0.16) var(--pct), transparent var(--pct));
+}
+
+@media print {
+  .menu,
+  .menu__fundo,
+  .home__topo,
+  .rel__sem-impressao {
+    display: none !important;
+  }
+  .home,
+  .home--menu {
+    display: block !important;
+    padding: 0 !important;
+  }
+  .home__principal {
+    margin: 0 !important;
+  }
+  .cad__painel,
+  .rel__numero {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}

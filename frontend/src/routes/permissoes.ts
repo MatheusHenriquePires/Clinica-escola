@@ -15,6 +15,10 @@ export const PERMISSOES = {
   horarios: { acessar: ['ADMIN', 'PROFISSIONAL'] as Perfil[], editar: ['ADMIN', 'PROFISSIONAL'] as Perfil[] },
   profissionais: { acessar: ['ADMIN'] as Perfil[], editar: ['ADMIN'] as Perfil[] },
   alunos: { acessar: ['ADMIN'] as Perfil[], editar: ['ADMIN'] as Perfil[] },
+  usuarios: { acessar: ['ADMIN'] as Perfil[], editar: ['ADMIN'] as Perfil[] },
+  agenda: { acessar: ['ADMIN', 'RECEPCAO', 'PROFISSIONAL'] as Perfil[], editar: [] as Perfil[] },
+  relatorios: { acessar: ['ADMIN'] as Perfil[], editar: [] as Perfil[] },
+  auditoria: { acessar: ['ADMIN'] as Perfil[], editar: [] as Perfil[] },
 }
 
 export const podeEditar = (modulo: keyof typeof PERMISSOES, perfil?: Perfil) =>

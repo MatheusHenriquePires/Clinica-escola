@@ -18,6 +18,25 @@ export function partesLocais(data: Date) {
   return { diaSemana: DIAS.indexOf(p.weekday ?? ''), minutos: Number(p.hour) * 60 + Number(p.minute) }
 }
 
+const formatadorData = new Intl.DateTimeFormat('en-US', {
+  timeZone: env.FUSO_CLINICA,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** Meia-noite (no fuso da clínica) do dia de `data`, deslocada `dias` dias. */
+export function inicioDoDiaLocal(data: Date, dias = 0) {
+  const p = Object.fromEntries(formatadorData.formatToParts(data).map((x) => [x.type, Number(x.value)]))
+  const comoUtc = Date.UTC(p.year!, p.month! - 1, p.day!, p.hour!, p.minute!, p.second!)
+  const deslocamento = comoUtc - Math.floor(data.getTime() / 1000) * 1000
+  return new Date(Date.UTC(p.year!, p.month! - 1, p.day! + dias) - deslocamento)
+}
+
 /** "08:30" -> 510 */
 export const paraMinutos = (hhmm: string) => {
   const [h = 0, m = 0] = hhmm.split(':').map(Number)

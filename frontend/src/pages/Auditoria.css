@@ -1,0 +1,42 @@
+.aud__limpar {
+  justify-content: flex-end;
+}
+
+.aud__id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--cinza);
+}
+
+.aud__diff {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  background: #f8faff;
+  border-radius: 8px;
+}
+
+.aud__diff th,
+.aud__diff td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borda);
+  overflow-wrap: anywhere;
+}
+
+.aud__diff th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cinza);
+}
+
+.aud__antes {
+  color: var(--vermelho);
+  text-decoration: line-through;
+  text-decoration-color: rgba(200, 30, 30, 0.35);
+}
+
+.aud__depois {
+  color: #1e6b36;
+}
